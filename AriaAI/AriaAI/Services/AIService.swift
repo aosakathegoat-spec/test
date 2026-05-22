@@ -1,0 +1,243 @@
+import Foundation
+import UIKit
+
+enum AIError: LocalizedError {
+    case noAPIKey
+    case overLimit
+    case networkError(String)
+    case decodingError(String)
+    case imageNotSupported
+
+    var errorDescription: String? {
+        switch self {
+        case .noAPIKey:         return "No API key set. Please add your Anthropic API key in Settings."
+        case .overLimit:        return "You've reached your monthly token limit. Upgrade your plan for more."
+        case .networkError(let m): return "Network error: \(m)"
+        case .decodingError(let m): return "Response error: \(m)"
+        case .imageNotSupported: return "Image analysis requires a Pro or Ultra plan."
+        }
+    }
+}
+
+actor AIService {
+    static let shared = AIService()
+
+    private let session: URLSession = {
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 120
+        config.timeoutIntervalForResource = 300
+        return URLSession(configuration: config)
+    }()
+
+    private init() {}
+
+    func streamMessage(
+        messages: [Message],
+        systemPrompt: String = Constants.SystemPrompt.aria,
+        images: [UIImage] = [],
+        plan: SubscriptionPlan
+    ) -> AsyncThrowingStream<StreamEvent, Error> {
+        AsyncThrowingStream { continuation in
+            Task {
+                do {
+                    let key = Constants.API.key
+                    guard !key.isEmpty else { throw AIError.noAPIKey }
+                    if !images.isEmpty && !plan.canAnalyzeImages { throw AIError.imageNotSupported }
+
+                    let request = try buildRequest(
+                        messages: messages,
+                        systemPrompt: systemPrompt,
+                        images: images
+                    )
+
+                    let (asyncBytes, response) = try await session.bytes(for: request)
+
+                    guard let httpResponse = response as? HTTPURLResponse else {
+                        throw AIError.networkError("Invalid response")
+                    }
+
+                    if httpResponse.statusCode == 401 { throw AIError.noAPIKey }
+                    if httpResponse.statusCode != 200 {
+                        throw AIError.networkError("HTTP \(httpResponse.statusCode)")
+                    }
+
+                    var inputTokens  = 0
+                    var outputTokens = 0
+                    var cachedTokens = 0
+
+                    for try await line in asyncBytes.lines {
+                        guard line.hasPrefix("data: ") else { continue }
+                        let jsonStr = String(line.dropFirst(6))
+                        guard jsonStr != "[DONE]" else { break }
+
+                        guard let data = jsonStr.data(using: .utf8),
+                              let event = try? JSONDecoder().decode(AnthropicStreamEvent.self, from: data)
+                        else { continue }
+
+                        switch event.type {
+                        case "message_start":
+                            if let usage = event.message?.usage {
+                                inputTokens  += usage.inputTokens ?? 0
+                                cachedTokens += (usage.cacheReadInputTokens ?? 0) + (usage.cacheCreationInputTokens ?? 0)
+                            }
+                        case "content_block_delta":
+                            if let text = event.delta?.text {
+                                continuation.yield(.text(text))
+                            }
+                        case "message_delta":
+                            if let usage = event.usage {
+                                outputTokens += usage.outputTokens ?? 0
+                            }
+                        case "message_stop":
+                            break
+                        default:
+                            break
+                        }
+                    }
+
+                    continuation.yield(.usage(input: inputTokens, output: outputTokens, cached: cachedTokens))
+                    continuation.finish()
+                } catch {
+                    continuation.finish(throwing: error)
+                }
+            }
+        }
+    }
+
+    // Non-streaming for briefings and background tasks
+    func sendMessage(
+        messages: [Message],
+        systemPrompt: String = Constants.SystemPrompt.aria,
+        images: [UIImage] = []
+    ) async throws -> (String, TokenUsageSnapshot) {
+        let key = Constants.API.key
+        guard !key.isEmpty else { throw AIError.noAPIKey }
+
+        var request = try buildRequest(messages: messages, systemPrompt: systemPrompt, images: images)
+        // Override stream to false
+        var body = try JSONDecoder().decode([String: AnyDecodable].self, from: request.httpBody ?? Data())
+        request.httpBody = try {
+            var d = try JSONSerialization.jsonObject(with: request.httpBody ?? Data()) as? [String: Any] ?? [:]
+            d["stream"] = false
+            return try JSONSerialization.data(withJSONObject: d)
+        }()
+
+        let (data, _) = try await session.data(for: request)
+
+        struct NonStreamResponse: Decodable {
+            let content: [TextContent]
+            let usage: UsageInfo
+            struct TextContent: Decodable {
+                let text: String?
+            }
+            struct UsageInfo: Decodable {
+                let inputTokens: Int
+                let outputTokens: Int
+                let cacheReadInputTokens: Int?
+                let cacheCreationInputTokens: Int?
+                enum CodingKeys: String, CodingKey {
+                    case inputTokens = "input_tokens"
+                    case outputTokens = "output_tokens"
+                    case cacheReadInputTokens = "cache_read_input_tokens"
+                    case cacheCreationInputTokens = "cache_creation_input_tokens"
+                }
+            }
+        }
+
+        let decoded = try JSONDecoder().decode(NonStreamResponse.self, from: data)
+        let text = decoded.content.compactMap { $0.text }.joined()
+        let snapshot = TokenUsageSnapshot(
+            inputTokens: decoded.usage.inputTokens,
+            outputTokens: decoded.usage.outputTokens,
+            cachedInputTokens: (decoded.usage.cacheReadInputTokens ?? 0) + (decoded.usage.cacheCreationInputTokens ?? 0)
+        )
+        return (text, snapshot)
+    }
+
+    private func buildRequest(
+        messages: [Message],
+        systemPrompt: String,
+        images: [UIImage]
+    ) throws -> URLRequest {
+        var urlRequest = URLRequest(url: URL(string: Constants.API.messagesURL)!)
+        urlRequest.httpMethod = "POST"
+        urlRequest.setValue("application/json",       forHTTPHeaderField: "Content-Type")
+        urlRequest.setValue(Constants.API.key,        forHTTPHeaderField: "x-api-key")
+        urlRequest.setValue(Constants.API.version,    forHTTPHeaderField: "anthropic-version")
+        urlRequest.setValue(Constants.API.betaHeaders, forHTTPHeaderField: "anthropic-beta")
+
+        let systemBlocks: [[String: Any]] = [
+            [
+                "type": "text",
+                "text": systemPrompt,
+                "cache_control": ["type": "ephemeral"]
+            ]
+        ]
+
+        var apiMessages: [[String: Any]] = []
+        for (i, msg) in messages.enumerated() {
+            guard msg.role != .system else { continue }
+            var contentBlocks: [[String: Any]] = []
+
+            // Attach images to the last user message
+            if msg.isUser && i == messages.indices.last(where: { messages[$0].isUser }) {
+                for image in images {
+                    if let b64 = image.base64EncodedString() {
+                        contentBlocks.append([
+                            "type": "image",
+                            "source": [
+                                "type": "base64",
+                                "media_type": "image/jpeg",
+                                "data": b64
+                            ]
+                        ])
+                    }
+                }
+                for img in msg.images {
+                    contentBlocks.append([
+                        "type": "image",
+                        "source": [
+                            "type": "base64",
+                            "media_type": img.mediaType,
+                            "data": img.base64Data
+                        ]
+                    ])
+                }
+            }
+            contentBlocks.append(["type": "text", "text": msg.content])
+
+            apiMessages.append([
+                "role": msg.role.rawValue,
+                "content": contentBlocks
+            ])
+        }
+
+        let body: [String: Any] = [
+            "model": Constants.API.model,
+            "max_tokens": Constants.API.maxTokens,
+            "system": systemBlocks,
+            "messages": apiMessages,
+            "stream": true
+        ]
+
+        urlRequest.httpBody = try JSONSerialization.data(withJSONObject: body)
+        return urlRequest
+    }
+}
+
+enum StreamEvent {
+    case text(String)
+    case usage(input: Int, output: Int, cached: Int)
+}
+
+// Helper for decoding unknown JSON
+struct AnyDecodable: Decodable {
+    let value: Any
+    init(from decoder: Decoder) throws {
+        if let v = try? decoder.singleValueContainer().decode(Bool.self)   { value = v; return }
+        if let v = try? decoder.singleValueContainer().decode(Int.self)    { value = v; return }
+        if let v = try? decoder.singleValueContainer().decode(Double.self) { value = v; return }
+        if let v = try? decoder.singleValueContainer().decode(String.self) { value = v; return }
+        value = ""
+    }
+}
