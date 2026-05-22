@@ -16,7 +16,7 @@ final class AppState: ObservableObject {
     }
 
     enum TabItem: Int {
-        case portfolio, wallets, send, receive, settings
+        case portfolio, wallets, trade, earn, bridge, settings
     }
 
     private let biometricService = BiometricAuthService()

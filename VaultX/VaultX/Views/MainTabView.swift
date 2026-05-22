@@ -8,33 +8,27 @@ struct MainTabView: View {
     var body: some View {
         TabView(selection: $appState.activeTab) {
             PortfolioView()
-                .tabItem {
-                    Label("Portfolio", systemImage: "chart.pie.fill")
-                }
+                .tabItem { Label("Portfolio", systemImage: "chart.pie.fill") }
                 .tag(AppState.TabItem.portfolio)
 
             WalletListView()
-                .tabItem {
-                    Label("Wallets", systemImage: "wallet.pass.fill")
-                }
+                .tabItem { Label("Wallets", systemImage: "wallet.pass.fill") }
                 .tag(AppState.TabItem.wallets)
 
-            SendView()
-                .tabItem {
-                    Label("Send", systemImage: "paperplane.fill")
-                }
-                .tag(AppState.TabItem.send)
+            TradingHubView()
+                .tabItem { Label("Trade", systemImage: "arrow.left.arrow.right.circle.fill") }
+                .tag(AppState.TabItem.trade)
 
-            ReceiveView()
-                .tabItem {
-                    Label("Receive", systemImage: "qrcode")
-                }
-                .tag(AppState.TabItem.receive)
+            EarnView()
+                .tabItem { Label("Earn", systemImage: "sparkles") }
+                .tag(AppState.TabItem.earn)
+
+            BridgeView()
+                .tabItem { Label("Bridge", systemImage: "arrow.triangle.2.circlepath.circle.fill") }
+                .tag(AppState.TabItem.bridge)
 
             SettingsView()
-                .tabItem {
-                    Label("Settings", systemImage: "gearshape.fill")
-                }
+                .tabItem { Label("Settings", systemImage: "gearshape.fill") }
                 .tag(AppState.TabItem.settings)
         }
         .tint(.purple)
