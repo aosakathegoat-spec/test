@@ -1,0 +1,310 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A001 /* VaultXApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B001 /* VaultXApp.swift */; };
+		A002 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = B002 /* AppState.swift */; };
+		A003 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B003 /* ContentView.swift */; };
+		A004 /* Wallet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B004 /* Wallet.swift */; };
+		A005 /* Transaction.swift in Sources */ = {isa = PBXBuildFile; fileRef = B005 /* Transaction.swift */; };
+		A006 /* Portfolio.swift in Sources */ = {isa = PBXBuildFile; fileRef = B006 /* Portfolio.swift */; };
+		A007 /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B007 /* KeychainService.swift */; };
+		A008 /* EncryptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B008 /* EncryptionService.swift */; };
+		A009 /* TwoFactorAuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B009 /* TwoFactorAuthService.swift */; };
+		A010 /* BiometricAuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B010 /* BiometricAuthService.swift */; };
+		A011 /* PhishingDetectionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B011 /* PhishingDetectionService.swift */; };
+		A012 /* SecurityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B012 /* SecurityManager.swift */; };
+		A013 /* WalletManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B013 /* WalletManager.swift */; };
+		A014 /* HDWalletService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B014 /* HDWalletService.swift */; };
+		A015 /* TaxReportingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B015 /* TaxReportingService.swift */; };
+		A016 /* PortfolioService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B016 /* PortfolioService.swift */; };
+		A017 /* NetworkService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B017 /* NetworkService.swift */; };
+		A018 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B018 /* NotificationService.swift */; };
+		A019 /* BackupService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B019 /* BackupService.swift */; };
+		A020 /* SessionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B020 /* SessionService.swift */; };
+		A021 /* AuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B021 /* AuthView.swift */; };
+		A022 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B022 /* MainTabView.swift */; };
+		A023 /* PortfolioView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B023 /* PortfolioView.swift */; };
+		A024 /* WalletListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B024 /* WalletListView.swift */; };
+		A025 /* WalletDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B025 /* WalletDetailView.swift */; };
+		A026 /* AddWalletView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B026 /* AddWalletView.swift */; };
+		A027 /* SendView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B027 /* SendView.swift */; };
+		A028 /* ReceiveView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B028 /* ReceiveView.swift */; };
+		A029 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B029 /* SettingsView.swift */; };
+		A030 /* TaxReportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B030 /* TaxReportView.swift */; };
+		A031 /* PriceAlertsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B031 /* PriceAlertsView.swift */; };
+		A032 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B032 /* Assets.xcassets */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		B001 /* VaultXApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "App/VaultXApp.swift"; sourceTree = "<group>"; };
+		B002 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "App/AppState.swift"; sourceTree = "<group>"; };
+		B003 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Views/ContentView.swift"; sourceTree = "<group>"; };
+		B004 /* Wallet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Models/Wallet.swift"; sourceTree = "<group>"; };
+		B005 /* Transaction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Models/Transaction.swift"; sourceTree = "<group>"; };
+		B006 /* Portfolio.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Models/Portfolio.swift"; sourceTree = "<group>"; };
+		B007 /* KeychainService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Security/KeychainService.swift"; sourceTree = "<group>"; };
+		B008 /* EncryptionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Security/EncryptionService.swift"; sourceTree = "<group>"; };
+		B009 /* TwoFactorAuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Security/TwoFactorAuthService.swift"; sourceTree = "<group>"; };
+		B010 /* BiometricAuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Security/BiometricAuthService.swift"; sourceTree = "<group>"; };
+		B011 /* PhishingDetectionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Security/PhishingDetectionService.swift"; sourceTree = "<group>"; };
+		B012 /* SecurityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Security/SecurityManager.swift"; sourceTree = "<group>"; };
+		B013 /* WalletManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Services/WalletManager.swift"; sourceTree = "<group>"; };
+		B014 /* HDWalletService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Services/HDWalletService.swift"; sourceTree = "<group>"; };
+		B015 /* TaxReportingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Services/TaxReportingService.swift"; sourceTree = "<group>"; };
+		B016 /* PortfolioService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Services/PortfolioService.swift"; sourceTree = "<group>"; };
+		B017 /* NetworkService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Services/NetworkService.swift"; sourceTree = "<group>"; };
+		B018 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Services/NotificationService.swift"; sourceTree = "<group>"; };
+		B019 /* BackupService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Services/BackupService.swift"; sourceTree = "<group>"; };
+		B020 /* SessionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Services/SessionService.swift"; sourceTree = "<group>"; };
+		B021 /* AuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Views/Auth/AuthView.swift"; sourceTree = "<group>"; };
+		B022 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Views/MainTabView.swift"; sourceTree = "<group>"; };
+		B023 /* PortfolioView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Views/Portfolio/PortfolioView.swift"; sourceTree = "<group>"; };
+		B024 /* WalletListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Views/Wallet/WalletListView.swift"; sourceTree = "<group>"; };
+		B025 /* WalletDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Views/Wallet/WalletDetailView.swift"; sourceTree = "<group>"; };
+		B026 /* AddWalletView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Views/Wallet/AddWalletView.swift"; sourceTree = "<group>"; };
+		B027 /* SendView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Views/Send/SendView.swift"; sourceTree = "<group>"; };
+		B028 /* ReceiveView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Views/Receive/ReceiveView.swift"; sourceTree = "<group>"; };
+		B029 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Views/Settings/SettingsView.swift"; sourceTree = "<group>"; };
+		B030 /* TaxReportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Views/Tax/TaxReportView.swift"; sourceTree = "<group>"; };
+		B031 /* PriceAlertsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Views/Alerts/PriceAlertsView.swift"; sourceTree = "<group>"; };
+		B032 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		PRODTARGET /* VaultX.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VaultX.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		FRAMEWORKSBUILD = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = ();
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		MAINGROUP = {
+			isa = PBXGroup;
+			children = (
+				VAULTXGROUP,
+				PRODUCTSGROUP,
+			);
+			sourceTree = "<group>";
+		};
+		PRODUCTSGROUP = {
+			isa = PBXGroup;
+			children = (
+				PRODTARGET,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		VAULTXGROUP = {
+			isa = PBXGroup;
+			children = (
+				B001, B002, B003, B004, B005, B006,
+				B007, B008, B009, B010, B011, B012,
+				B013, B014, B015, B016, B017, B018, B019, B020,
+				B021, B022, B023, B024, B025, B026, B027, B028, B029, B030, B031,
+				B032,
+			);
+			path = VaultX;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		MAINTARGET /* VaultX */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BUILDCONFIGLIST;
+			buildPhases = (
+				SOURCESBUILD,
+				FRAMEWORKSBUILD,
+				RESOURCESBUILD,
+			);
+			buildRules = ();
+			dependencies = ();
+			name = VaultX;
+			productName = VaultX;
+			productReference = PRODTARGET;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		PROJ /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					MAINTARGET = {
+						CreatedOnToolsVersion = 15.0;
+					};
+				};
+			};
+			buildConfigurationList = PROJCONFIGLIST;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (en, Base);
+			mainGroup = MAINGROUP;
+			productRefGroup = PRODUCTSGROUP;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (MAINTARGET);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		RESOURCESBUILD = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (A032);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		SOURCESBUILD = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A001, A002, A003, A004, A005, A006,
+				A007, A008, A009, A010, A011, A012,
+				A013, A014, A015, A016, A017, A018, A019, A020,
+				A021, A022, A023, A024, A025, A026, A027, A028, A029, A030, A031,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		DEBUG_PROJ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("DEBUG=1", "$(inherited)");
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		RELEASE_PROJ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				MTL_FAST_MATH = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+			};
+			name = Release;
+		};
+		DEBUG_TARGET = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "VaultX uses Face ID to securely unlock your wallet";
+				INFOPLIST_KEY_NSCameraUsageDescription = "VaultX uses the camera to scan QR codes";
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "VaultX connects to local hardware wallets";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks");
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.vaultx.wallet;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		RELEASE_TARGET = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "VaultX uses Face ID to securely unlock your wallet";
+				INFOPLIST_KEY_NSCameraUsageDescription = "VaultX uses the camera to scan QR codes";
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "VaultX connects to local hardware wallets";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks");
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.vaultx.wallet;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		PROJCONFIGLIST = {
+			isa = XCConfigurationList;
+			buildConfigurations = (DEBUG_PROJ, RELEASE_PROJ);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BUILDCONFIGLIST = {
+			isa = XCConfigurationList;
+			buildConfigurations = (DEBUG_TARGET, RELEASE_TARGET);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = PROJ /* Project object */;
+}
