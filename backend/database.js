@@ -25,27 +25,37 @@ db.exec(`
     UNIQUE(user_id)
   );
 
-  CREATE TABLE IF NOT EXISTS deposited_items (
+  -- Deposit sessions: user clicks "Deposit" on site, bot sees this and
+  -- accepts the next trade request from that Roblox account
+  CREATE TABLE IF NOT EXISTS deposit_sessions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER NOT NULL REFERENCES users(id),
-    roblox_asset_id INTEGER NOT NULL,
-    asset_name TEXT NOT NULL,
-    uaid INTEGER NOT NULL UNIQUE,
-    deposited_at INTEGER NOT NULL DEFAULT (unixepoch()),
-    status TEXT NOT NULL DEFAULT 'deposited'
+    created_at INTEGER NOT NULL DEFAULT (unixepoch()),
+    expires_at INTEGER NOT NULL,
+    status TEXT NOT NULL DEFAULT 'waiting'
+    -- waiting | in_trade | completed | expired | cancelled
   );
 
+  -- Pets held in escrow by the bot
+  CREATE TABLE IF NOT EXISTS deposited_pets (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL REFERENCES users(id),
+    pet_name TEXT NOT NULL,
+    neon_status TEXT NOT NULL DEFAULT 'normal',
+    age TEXT NOT NULL DEFAULT 'newborn',
+    deposited_at INTEGER NOT NULL DEFAULT (unixepoch()),
+    status TEXT NOT NULL DEFAULT 'deposited'
+    -- deposited | withdrawing | withdrawn
+  );
+
+  -- Withdrawal requests
   CREATE TABLE IF NOT EXISTS withdrawals (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER NOT NULL REFERENCES users(id),
-    item_id INTEGER NOT NULL REFERENCES deposited_items(id),
+    pet_id INTEGER NOT NULL REFERENCES deposited_pets(id),
     requested_at INTEGER NOT NULL DEFAULT (unixepoch()),
     status TEXT NOT NULL DEFAULT 'pending'
-  );
-
-  CREATE TABLE IF NOT EXISTS processed_trades (
-    trade_id INTEGER PRIMARY KEY,
-    processed_at INTEGER NOT NULL DEFAULT (unixepoch())
+    -- pending | trade_sent | completed
   );
 `);
 

@@ -4,41 +4,39 @@ const { requireAuth } = require('../middleware/auth');
 
 const router = express.Router();
 
-// Request withdrawal of one or more items
+// Request withdrawal of selected pets
 router.post('/', requireAuth, (req, res) => {
-  const { itemIds } = req.body;
-  if (!Array.isArray(itemIds) || itemIds.length === 0) {
-    return res.status(400).json({ error: 'itemIds array required' });
+  const { petIds } = req.body;
+  if (!Array.isArray(petIds) || petIds.length === 0) {
+    return res.status(400).json({ error: 'petIds array required' });
   }
 
-  // Verify all items belong to this user and are available
-  for (const id of itemIds) {
-    const item = db.prepare(
-      "SELECT id FROM deposited_items WHERE id = ? AND user_id = ? AND status = 'deposited'"
+  for (const id of petIds) {
+    const pet = db.prepare(
+      "SELECT id FROM deposited_pets WHERE id = ? AND user_id = ? AND status = 'deposited'"
     ).get(id, req.user.id);
-    if (!item) return res.status(400).json({ error: `Item ${id} not found or not available for withdrawal` });
+    if (!pet) return res.status(400).json({ error: `Pet ${id} not found or not available` });
   }
 
-  // Create withdrawal records and mark items as withdrawing
-  const insertWithdrawal = db.prepare('INSERT INTO withdrawals (user_id, item_id) VALUES (?, ?)');
-  const markWithdrawing = db.prepare("UPDATE deposited_items SET status = 'withdrawing' WHERE id = ?");
+  const insertWithdrawal = db.prepare('INSERT INTO withdrawals (user_id, pet_id) VALUES (?, ?)');
+  const markPet = db.prepare("UPDATE deposited_pets SET status = 'withdrawing' WHERE id = ?");
 
   db.transaction(() => {
-    for (const id of itemIds) {
+    for (const id of petIds) {
       insertWithdrawal.run(req.user.id, id);
-      markWithdrawing.run(id);
+      markPet.run(id);
     }
   })();
 
-  res.json({ success: true, message: 'Withdrawal requested. The bot will send you a trade offer shortly.' });
+  res.json({ success: true, message: 'Withdrawal requested. Join the bot\'s Adopt Me server and the bot will trade you your pets back.' });
 });
 
-// Get withdrawal history
+// Withdrawal history
 router.get('/history', requireAuth, (req, res) => {
   const history = db.prepare(`
-    SELECT w.id, w.requested_at, w.status, di.asset_name, di.roblox_asset_id
+    SELECT w.id, w.requested_at, w.status, dp.pet_name, dp.neon_status, dp.age
     FROM withdrawals w
-    JOIN deposited_items di ON w.item_id = di.id
+    JOIN deposited_pets dp ON w.pet_id = dp.id
     WHERE w.user_id = ?
     ORDER BY w.requested_at DESC
     LIMIT 50

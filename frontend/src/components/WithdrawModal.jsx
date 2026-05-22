@@ -2,39 +2,47 @@ import React, { useState } from 'react';
 import { api } from '../api';
 
 const overlay = {
-  position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)',
+  position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)',
   display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: 16,
 };
 const modal = {
   background: '#16161e', border: '1px solid #2a2a3a', borderRadius: 12,
-  padding: '28px 24px', width: '100%', maxWidth: 480, maxHeight: '80vh', overflowY: 'auto',
-};
-const s = {
-  title: { fontSize: 18, fontWeight: 700, marginBottom: 4 },
-  sub: { fontSize: 13, color: '#888', marginBottom: 20 },
-  grid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 20 },
-  item: (selected) => ({
-    padding: '12px 14px', background: selected ? '#2a2060' : '#0f0f13',
-    border: `1px solid ${selected ? '#7c6af7' : '#2a2a3a'}`, borderRadius: 8,
-    cursor: 'pointer', transition: 'all .15s',
-  }),
-  itemName: { fontSize: 13, fontWeight: 600, marginBottom: 2 },
-  itemId: { fontSize: 11, color: '#666' },
-  row: { display: 'flex', gap: 10, justifyContent: 'flex-end' },
-  btn: { padding: '10px 20px', background: '#7c6af7', color: '#fff', border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer' },
-  btnCancel: { padding: '10px 20px', background: 'transparent', color: '#aaa', border: '1px solid #2a2a3a', borderRadius: 8, fontSize: 14, cursor: 'pointer' },
-  err: { color: '#f66', fontSize: 13, marginBottom: 12 },
-  ok: { color: '#4caf50', fontSize: 13, marginBottom: 12 },
-  empty: { color: '#888', fontSize: 14, textAlign: 'center', padding: '20px 0' },
+  padding: '28px 24px', width: '100%', maxWidth: 500, maxHeight: '80vh', overflowY: 'auto',
 };
 
-export default function WithdrawModal({ items, onClose, onSuccess }) {
+const NEON_COLOUR = { normal: '#aaa', neon: '#6af7d0', mega_neon: '#f76af7' };
+const NEON_LABEL  = { normal: '', neon: 'Neon', mega_neon: 'Mega Neon' };
+
+function PetCard({ pet, selected, onToggle }) {
+  const colour = NEON_COLOUR[pet.neon_status] || '#aaa';
+  return (
+    <div
+      onClick={onToggle}
+      style={{
+        padding: '12px 14px', borderRadius: 8, cursor: 'pointer',
+        background: selected ? '#1e1a40' : '#0f0f13',
+        border: `1px solid ${selected ? '#7c6af7' : '#2a2a3a'}`,
+        transition: 'all .15s',
+      }}
+    >
+      <div style={{ fontWeight: 600, fontSize: 13, color: colour }}>
+        {NEON_LABEL[pet.neon_status] && <span style={{ marginRight: 4 }}>{NEON_LABEL[pet.neon_status]}</span>}
+        {pet.pet_name}
+      </div>
+      <div style={{ fontSize: 11, color: '#666', marginTop: 2, textTransform: 'capitalize' }}>
+        {pet.age?.replace(/_/g, ' ')}
+      </div>
+    </div>
+  );
+}
+
+export default function WithdrawModal({ pets, onClose, onSuccess }) {
   const [selected, setSelected] = useState(new Set());
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [done, setDone] = useState(false);
+  const [loading, setLoading]   = useState(false);
+  const [error, setError]       = useState('');
+  const [done, setDone]         = useState(false);
 
-  const available = items.filter(i => i.status === 'deposited');
+  const available = pets.filter(p => p.status === 'deposited');
 
   function toggle(id) {
     setSelected(prev => {
@@ -45,7 +53,7 @@ export default function WithdrawModal({ items, onClose, onSuccess }) {
   }
 
   async function handleWithdraw() {
-    if (selected.size === 0) return setError('Select at least one item');
+    if (selected.size === 0) return setError('Select at least one pet');
     setError('');
     setLoading(true);
     try {
@@ -62,33 +70,40 @@ export default function WithdrawModal({ items, onClose, onSuccess }) {
   return (
     <div style={overlay} onClick={e => e.target === e.currentTarget && onClose()}>
       <div style={modal}>
-        <div style={s.title}>Withdraw Items</div>
-        <div style={s.sub}>Select items to send back to your Roblox account. The bot will send a trade offer.</div>
+        <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 4 }}>Withdraw Pets</div>
+        <div style={{ fontSize: 13, color: '#888', marginBottom: 20 }}>
+          Select pets to get back. Go to Adopt Me and send a trade request to the bot — it will offer your pets on its side.
+        </div>
 
         {done ? (
           <>
-            <div style={s.ok}>Withdrawal requested! Check your Roblox trade offers — the bot will send a trade to you shortly.</div>
-            <div style={s.row}><button style={s.btn} onClick={onClose}>Close</button></div>
+            <div style={{ color: '#4caf50', fontSize: 14, marginBottom: 20 }}>
+              Withdrawal requested! Go to Adopt Me, find the bot account, and send it a trade request. It will offer your selected pets back.
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <button style={{ padding: '10px 20px', background: '#7c6af7', color: '#fff', border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer' }} onClick={onClose}>Close</button>
+            </div>
           </>
         ) : (
           <>
             {available.length === 0 ? (
-              <div style={s.empty}>No items available to withdraw.</div>
+              <div style={{ color: '#888', fontSize: 14, textAlign: 'center', padding: '20px 0' }}>No pets available to withdraw.</div>
             ) : (
-              <div style={s.grid}>
-                {available.map(item => (
-                  <div key={item.id} style={s.item(selected.has(item.id))} onClick={() => toggle(item.id)}>
-                    <div style={s.itemName}>{item.asset_name}</div>
-                    <div style={s.itemId}>Asset #{item.roblox_asset_id}</div>
-                  </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 20 }}>
+                {available.map(pet => (
+                  <PetCard key={pet.id} pet={pet} selected={selected.has(pet.id)} onToggle={() => toggle(pet.id)} />
                 ))}
               </div>
             )}
-            {error && <div style={s.err}>{error}</div>}
-            <div style={s.row}>
-              <button style={s.btnCancel} onClick={onClose}>Cancel</button>
-              <button style={s.btn} onClick={handleWithdraw} disabled={loading || selected.size === 0}>
-                {loading ? 'Requesting…' : `Withdraw ${selected.size > 0 ? `(${selected.size})` : ''}`}
+            {error && <div style={{ color: '#f66', fontSize: 13, marginBottom: 12 }}>{error}</div>}
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+              <button style={{ padding: '10px 20px', background: 'transparent', color: '#aaa', border: '1px solid #2a2a3a', borderRadius: 8, fontSize: 14, cursor: 'pointer' }} onClick={onClose}>Cancel</button>
+              <button
+                style={{ padding: '10px 20px', background: '#7c6af7', color: '#fff', border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer', opacity: selected.size === 0 ? 0.5 : 1 }}
+                onClick={handleWithdraw}
+                disabled={loading || selected.size === 0}
+              >
+                {loading ? 'Requesting…' : `Withdraw${selected.size > 0 ? ` (${selected.size})` : ''}`}
               </button>
             </div>
           </>

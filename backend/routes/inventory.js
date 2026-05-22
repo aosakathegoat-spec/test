@@ -4,16 +4,15 @@ const { requireAuth } = require('../middleware/auth');
 
 const router = express.Router();
 
-// Get all deposited items for the logged-in user
 router.get('/', requireAuth, (req, res) => {
-  const items = db.prepare(`
-    SELECT di.id, di.roblox_asset_id, di.asset_name, di.uaid, di.deposited_at, di.status
-    FROM deposited_items di
-    WHERE di.user_id = ? AND di.status IN ('deposited', 'withdrawing')
-    ORDER BY di.deposited_at DESC
+  const pets = db.prepare(`
+    SELECT id, pet_name, neon_status, age, deposited_at, status
+    FROM deposited_pets
+    WHERE user_id = ? AND status IN ('deposited', 'withdrawing')
+    ORDER BY deposited_at DESC
   `).all(req.user.id);
 
-  res.json({ items });
+  res.json({ pets });
 });
 
 module.exports = router;

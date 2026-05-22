@@ -4,137 +4,203 @@ import { api } from '../api';
 import Navbar from '../components/Navbar';
 import WithdrawModal from '../components/WithdrawModal';
 
-const s = {
-  page: { minHeight: '100vh' },
-  wrap: { maxWidth: 900, margin: '0 auto', padding: '40px 24px' },
-  header: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 32 },
-  title: { fontSize: 22, fontWeight: 700 },
-  actions: { display: 'flex', gap: 10 },
-  btn: { padding: '10px 18px', background: '#7c6af7', color: '#fff', border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer' },
-  btnSec: { padding: '10px 18px', background: 'transparent', color: '#7c6af7', border: '1px solid #7c6af7', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer' },
-  grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 14, marginBottom: 40 },
-  card: { background: '#16161e', border: '1px solid #2a2a3a', borderRadius: 10, padding: '16px 14px' },
-  cardName: { fontWeight: 600, fontSize: 14, marginBottom: 4 },
-  cardId: { fontSize: 11, color: '#666', marginBottom: 8 },
-  badge: (status) => ({
-    display: 'inline-block', fontSize: 11, padding: '2px 8px', borderRadius: 20,
-    background: status === 'deposited' ? '#1a2e1a' : '#2a2060',
-    color: status === 'deposited' ? '#4caf50' : '#9c8af7',
-  }),
-  empty: { textAlign: 'center', padding: '60px 0', color: '#666' },
-  emptyTitle: { fontSize: 18, marginBottom: 8 },
-  emptySub: { fontSize: 14, marginBottom: 24 },
-  section: { marginBottom: 32 },
-  sectionTitle: { fontSize: 16, fontWeight: 600, marginBottom: 16, color: '#aaa' },
-  depositBox: { background: '#16161e', border: '1px dashed #7c6af7', borderRadius: 10, padding: '24px', marginBottom: 32 },
-  depositTitle: { fontWeight: 600, marginBottom: 8 },
-  depositDesc: { fontSize: 14, color: '#aaa', lineHeight: 1.6, marginBottom: 0 },
-  botId: { fontFamily: 'monospace', color: '#7c6af7' },
-  notice: { fontSize: 13, color: '#aaa', background: '#1a1a24', borderRadius: 8, padding: '12px 14px', marginBottom: 32 },
-  noVerify: { textAlign: 'center', padding: '60px 0' },
-  noVerifyTitle: { fontSize: 18, fontWeight: 600, marginBottom: 8 },
-  noVerifySub: { fontSize: 14, color: '#aaa', marginBottom: 24 },
-};
+const NEON_COLOUR = { normal: '#e8e8f0', neon: '#6af7d0', mega_neon: '#f76af7' };
+const NEON_LABEL  = { normal: '', neon: '✨ Neon', mega_neon: '🌈 Mega Neon' };
 
-const BOT_USER_ID = import.meta.env.VITE_BOT_USER_ID || 'YOUR_BOT_ID';
+function PetCard({ pet }) {
+  const colour = NEON_COLOUR[pet.neon_status] || '#e8e8f0';
+  const isWithdrawing = pet.status === 'withdrawing';
+  return (
+    <div style={{
+      background: '#16161e', border: `1px solid ${isWithdrawing ? '#7c6af7' : '#2a2a3a'}`,
+      borderRadius: 10, padding: '16px 14px',
+    }}>
+      <div style={{ fontWeight: 700, fontSize: 14, color: colour, marginBottom: 2 }}>
+        {NEON_LABEL[pet.neon_status] && <span style={{ marginRight: 4 }}>{NEON_LABEL[pet.neon_status]}</span>}
+        {pet.pet_name}
+      </div>
+      <div style={{ fontSize: 11, color: '#777', textTransform: 'capitalize', marginBottom: 8 }}>
+        {pet.age?.replace(/_/g, ' ')}
+      </div>
+      <span style={{
+        display: 'inline-block', fontSize: 11, padding: '2px 8px', borderRadius: 20,
+        background: isWithdrawing ? '#2a2060' : '#1a2a1a',
+        color: isWithdrawing ? '#9c8af7' : '#4caf50',
+      }}>
+        {isWithdrawing ? 'Trade sent' : 'In bank'}
+      </span>
+    </div>
+  );
+}
+
+function DepositBanner({ onDeposit }) {
+  const [session, setSession]     = useState(null);
+  const [loading, setLoading]     = useState(false);
+  const [countdown, setCountdown] = useState(0);
+
+  useEffect(() => {
+    api.depositStatus().then(d => setSession(d.session)).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (!session || session.status !== 'waiting') return;
+    const tick = () => {
+      const left = session.expires_at - Math.floor(Date.now() / 1000);
+      setCountdown(Math.max(0, left));
+      if (left <= 0) setSession(null);
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [session]);
+
+  async function startDeposit() {
+    setLoading(true);
+    try {
+      const d = await api.startDeposit();
+      setSession({ ...d, status: 'waiting' });
+      onDeposit();
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function cancelDeposit() {
+    await api.cancelDeposit().catch(() => {});
+    setSession(null);
+  }
+
+  const mins = Math.floor(countdown / 60);
+  const secs = String(countdown % 60).padStart(2, '0');
+
+  if (session && session.status === 'waiting' && countdown > 0) {
+    return (
+      <div style={{ background: '#1a1a2e', border: '1px solid #7c6af7', borderRadius: 10, padding: '20px 22px', marginBottom: 32 }}>
+        <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 6 }}>
+          Deposit mode active — expires in {mins}:{secs}
+        </div>
+        <div style={{ fontSize: 13, color: '#aaa', marginBottom: 16, lineHeight: 1.6 }}>
+          1. Open <strong>Adopt Me</strong> and find the bot account.<br />
+          2. Send the bot a trade request.<br />
+          3. Add your pets on your side. The bot gives nothing — it just accepts.<br />
+          4. Confirm the trade. Your pets will appear here within seconds.
+        </div>
+        <button
+          onClick={cancelDeposit}
+          style={{ fontSize: 13, padding: '6px 14px', background: 'transparent', color: '#f66', border: '1px solid #f66', borderRadius: 6, cursor: 'pointer' }}
+        >
+          Cancel Deposit
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ background: '#16161e', border: '1px dashed #7c6af7', borderRadius: 10, padding: '20px 22px', marginBottom: 32 }}>
+      <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 6 }}>Deposit Pets into Bank</div>
+      <div style={{ fontSize: 13, color: '#aaa', marginBottom: 16 }}>
+        Click the button, then go to Adopt Me and trade your pets to the bot. Your pets will appear here once the trade is done.
+      </div>
+      <button
+        onClick={startDeposit}
+        disabled={loading}
+        style={{ padding: '10px 22px', background: '#7c6af7', color: '#fff', border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
+      >
+        {loading ? 'Starting…' : 'Start Deposit'}
+      </button>
+    </div>
+  );
+}
 
 export default function Dashboard() {
-  const [items, setItems] = useState([]);
-  const [verifyStatus, setVerifyStatus] = useState(null);
-  const [showWithdraw, setShowWithdraw] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [pets, setPets]           = useState([]);
+  const [verifyStatus, setVS]     = useState(null);
+  const [showWithdraw, setSW]     = useState(false);
+  const [loading, setLoading]     = useState(true);
   const navigate = useNavigate();
 
   const reload = useCallback(async () => {
     const [inv, vs] = await Promise.all([
-      api.getInventory().catch(() => ({ items: [] })),
+      api.getInventory().catch(() => ({ pets: [] })),
       api.verifyStatus().catch(() => null),
     ]);
-    setItems(inv.items);
-    setVerifyStatus(vs);
+    setPets(inv.pets);
+    setVS(vs);
     setLoading(false);
   }, []);
 
   useEffect(() => { reload(); }, [reload]);
 
-  if (loading) return <div style={s.page}><Navbar /><div style={{ padding: 40, color: '#888' }}>Loading…</div></div>;
+  // Poll every 5s while page is open so new deposits appear automatically
+  useEffect(() => {
+    const id = setInterval(() => api.getInventory().then(d => setPets(d.pets)).catch(() => {}), 5000);
+    return () => clearInterval(id);
+  }, []);
+
+  if (loading) return <div><Navbar /><div style={{ padding: 40, color: '#888' }}>Loading…</div></div>;
 
   if (!verifyStatus?.verified) {
     return (
-      <div style={s.page}>
+      <div>
         <Navbar />
-        <div style={s.wrap}>
-          <div style={s.noVerify}>
-            <div style={s.noVerifyTitle}>Link your Roblox account first</div>
-            <div style={s.noVerifySub}>You need to verify your Roblox account before you can deposit or withdraw items.</div>
-            <button style={s.btn} onClick={() => navigate('/verify')}>Verify Roblox Account</button>
-          </div>
+        <div style={{ maxWidth: 600, margin: '80px auto', padding: '0 24px', textAlign: 'center' }}>
+          <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 8 }}>Link your Roblox account first</div>
+          <div style={{ fontSize: 14, color: '#888', marginBottom: 24 }}>Verification is required before you can deposit or withdraw.</div>
+          <button style={{ padding: '12px 28px', background: '#7c6af7', color: '#fff', border: 'none', borderRadius: 8, fontSize: 15, fontWeight: 600, cursor: 'pointer' }} onClick={() => navigate('/verify')}>Verify Roblox Account</button>
         </div>
       </div>
     );
   }
 
-  const deposited = items.filter(i => i.status === 'deposited');
-  const withdrawing = items.filter(i => i.status === 'withdrawing');
+  const inBank      = pets.filter(p => p.status === 'deposited');
+  const withdrawing = pets.filter(p => p.status === 'withdrawing');
 
   return (
-    <div style={s.page}>
+    <div>
       <Navbar />
-      <div style={s.wrap}>
+      <div style={{ maxWidth: 920, margin: '0 auto', padding: '40px 24px' }}>
 
-        <div style={s.depositBox}>
-          <div style={s.depositTitle}>How to Deposit</div>
-          <div style={s.depositDesc}>
-            Send a trade to the bot account (ID: <span style={s.botId}>{BOT_USER_ID}</span>).<br />
-            Offer your items — <strong>the bot gives nothing in return</strong>.<br />
-            Once the bot accepts the trade, your items will appear below automatically (within ~30 seconds).
+        <DepositBanner onDeposit={reload} />
+
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+          <div style={{ fontSize: 20, fontWeight: 700 }}>
+            Bank — {inBank.length} pet{inBank.length !== 1 ? 's' : ''}
           </div>
-        </div>
-
-        <div style={s.header}>
-          <div style={s.title}>Your Escrow ({deposited.length} item{deposited.length !== 1 ? 's' : ''})</div>
-          <div style={s.actions}>
-            <button style={s.btnSec} onClick={reload}>Refresh</button>
-            {deposited.length > 0 && (
-              <button style={s.btn} onClick={() => setShowWithdraw(true)}>Withdraw Items</button>
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button style={{ padding: '9px 16px', background: 'transparent', color: '#aaa', border: '1px solid #2a2a3a', borderRadius: 7, fontSize: 13, cursor: 'pointer' }} onClick={reload}>Refresh</button>
+            {inBank.length > 0 && (
+              <button style={{ padding: '9px 16px', background: '#7c6af7', color: '#fff', border: 'none', borderRadius: 7, fontSize: 13, fontWeight: 600, cursor: 'pointer' }} onClick={() => setSW(true)}>Withdraw</button>
             )}
           </div>
         </div>
 
-        {items.length === 0 ? (
-          <div style={s.empty}>
-            <div style={s.emptyTitle}>No items deposited yet</div>
-            <div style={s.emptySub}>Trade items to the bot to deposit them here.</div>
+        {pets.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '60px 0', color: '#555' }}>
+            <div style={{ fontSize: 40, marginBottom: 12 }}>🐾</div>
+            <div style={{ fontSize: 16, marginBottom: 6 }}>No pets in bank yet</div>
+            <div style={{ fontSize: 13 }}>Click "Start Deposit" above to deposit your first pet.</div>
           </div>
         ) : (
           <>
-            {deposited.length > 0 && (
-              <div style={s.section}>
-                <div style={s.sectionTitle}>Available ({deposited.length})</div>
-                <div style={s.grid}>
-                  {deposited.map(item => (
-                    <div key={item.id} style={s.card}>
-                      <div style={s.cardName}>{item.asset_name}</div>
-                      <div style={s.cardId}>Asset #{item.roblox_asset_id}</div>
-                      <span style={s.badge('deposited')}>In escrow</span>
-                    </div>
-                  ))}
+            {inBank.length > 0 && (
+              <div style={{ marginBottom: 36 }}>
+                <div style={{ fontSize: 13, color: '#666', fontWeight: 600, marginBottom: 12, textTransform: 'uppercase', letterSpacing: 1 }}>Available</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 12 }}>
+                  {inBank.map(p => <PetCard key={p.id} pet={p} />)}
                 </div>
               </div>
             )}
 
             {withdrawing.length > 0 && (
-              <div style={s.section}>
-                <div style={s.sectionTitle}>Pending Withdrawal ({withdrawing.length})</div>
-                <div style={s.notice}>The bot is sending you a trade offer for these items. Check your Roblox trade notifications.</div>
-                <div style={s.grid}>
-                  {withdrawing.map(item => (
-                    <div key={item.id} style={s.card}>
-                      <div style={s.cardName}>{item.asset_name}</div>
-                      <div style={s.cardId}>Asset #{item.roblox_asset_id}</div>
-                      <span style={s.badge('withdrawing')}>Trade sent</span>
-                    </div>
-                  ))}
+              <div>
+                <div style={{ fontSize: 13, color: '#666', fontWeight: 600, marginBottom: 12, textTransform: 'uppercase', letterSpacing: 1 }}>Pending Withdrawal</div>
+                <div style={{ fontSize: 13, color: '#aaa', background: '#1a1a24', borderRadius: 8, padding: '10px 14px', marginBottom: 12 }}>
+                  Go to Adopt Me and send the bot a trade request — it will offer these pets back to you.
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 12 }}>
+                  {withdrawing.map(p => <PetCard key={p.id} pet={p} />)}
                 </div>
               </div>
             )}
@@ -143,11 +209,7 @@ export default function Dashboard() {
       </div>
 
       {showWithdraw && (
-        <WithdrawModal
-          items={items}
-          onClose={() => setShowWithdraw(false)}
-          onSuccess={reload}
-        />
+        <WithdrawModal pets={pets} onClose={() => setSW(false)} onSuccess={reload} />
       )}
     </div>
   );
