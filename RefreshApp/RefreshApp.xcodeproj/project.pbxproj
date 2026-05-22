@@ -9,12 +9,16 @@
 /* Begin PBXBuildFile section */
 		A1000001 /* RefreshAppApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000010 /* RefreshAppApp.swift */; };
 		A1000002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000011 /* ContentView.swift */; };
+		A1000003 /* GameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000012 /* GameView.swift */; };
+		A1000004 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000013 /* AppDelegate.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		A1000005 /* RefreshApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RefreshApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A1000010 /* RefreshAppApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RefreshAppApp.swift; sourceTree = "<group>"; };
 		A1000011 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		A1000012 /* GameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameView.swift; sourceTree = "<group>"; };
+		A1000013 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -49,6 +53,8 @@
 			children = (
 				A1000010 /* RefreshAppApp.swift */,
 				A1000011 /* ContentView.swift */,
+				A1000012 /* GameView.swift */,
+				A1000013 /* AppDelegate.swift */,
 			);
 			path = RefreshApp;
 			sourceTree = "<group>";
@@ -123,6 +129,8 @@
 			files = (
 				A1000001 /* RefreshAppApp.swift in Sources */,
 				A1000002 /* ContentView.swift in Sources */,
+				A1000003 /* GameView.swift in Sources */,
+				A1000004 /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
