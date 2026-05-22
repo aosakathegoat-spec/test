@@ -1,0 +1,19 @@
+SPDX-Exception-Identifier: GCC-exception-2.0
+SPDX-URL: https://spdx.org/licenses/GCC-exception-2.0.html
+SPDX-Licenses: GPL-2.0-only, GPL-2.0-or-later
+Usage-Guide:
+  This exception is used together with one of the above SPDX-Licenses
+  to allow free software to use the standard (non-system) run-time
+  libraries provided by GCC.
+  To use this exception add the following SPDX tag/value pair to a comment
+  according to the placement guidelines in the licensing rules
+  documentation:
+    SPDX-License-Identifier: <SPDX-License> WITH GCC-exception-2.0
+Exception-Text:
+
+As a special exception, if you link this library with other files, some of
+which are compiled with GCC, to produce an executable, this library does
+not by itself cause the resulting executable to be covered by the GNU
+General Public License. This exception does not however invalidate any
+other reasons why the executable file might be covered by the GNU General
+Public License.
