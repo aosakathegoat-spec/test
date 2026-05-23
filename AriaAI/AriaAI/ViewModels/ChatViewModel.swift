@@ -449,6 +449,26 @@ class ChatViewModel: ObservableObject {
                 ? "Opened \(appName) successfully."
                 : "Could not open \(appName) — it may not be installed or the app id is incorrect."
 
+        case "delete_app":
+            let appName = (input["app_name"] as? String) ?? "the app"
+            return """
+            To delete \(appName):
+            1. Find \(appName) on your Home Screen or in your App Library
+            2. Press and hold the \(appName) icon until a context menu appears
+            3. Tap "Remove App"
+            4. Tap "Delete App" to confirm
+
+            Note: This permanently removes the app and its data. You can re-download it from the App Store any time.
+            """
+
+        case "open_screen_time":
+            let opened = await AppLauncherService.shared.openScreenTime()
+            if opened {
+                return "Opened Screen Time settings. From here you can set App Limits (daily caps per app or category), schedule Downtime (block periods), configure Content & Privacy Restrictions, and manage Communication Limits."
+            } else {
+                return "Couldn't open Screen Time automatically. Please go to Settings → Screen Time to configure app limits and usage restrictions."
+            }
+
         default:
             return "Unknown tool: \(name)"
         }

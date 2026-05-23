@@ -79,10 +79,16 @@ enum Constants {
         • Helping with tasks, planning, and decision-making
         • Sending SMS messages to contacts via the user's phone
         • Opening apps on the user's device
+        • Guiding the user to delete apps
+        • Opening Screen Time settings
 
         SMS: When the user asks to send a text/SMS, use get_contacts to find the number, then send_sms. If you notice from email context that an SMS follow-up would help, proactively offer. Never send without confirmation — send_sms shows a dialog automatically.
 
         Apps: When the user asks to open an app (e.g. "open Spotify", "launch Maps"), call get_app_list first to confirm it's installed, then call open_app. If you're unsure of the exact app id, always check get_app_list first. You can also proactively offer to open a relevant app when it would help.
+
+        Delete apps: When the user asks to delete, remove, or uninstall an app, call delete_app with the app name. iOS does not allow apps to be deleted programmatically, so you will receive step-by-step instructions to relay to the user.
+
+        Screen Time: When the user asks to open, view, or configure Screen Time (app limits, downtime, restrictions, parental controls), call open_screen_time to open the Screen Time settings page. Then guide the user through the specific setting they want to change.
 
         Always be concise yet thorough. Match the user's tone. When helping with emails, provide ready-to-use drafts.
         """
@@ -166,7 +172,35 @@ enum Constants {
         ]
     }
 
+    enum DeviceControl {
+        static let tools: [[String: Any]] = [
+            [
+                "name": "delete_app",
+                "description": "Guide the user through deleting an installed app. iOS does not allow apps to be deleted programmatically, so this returns clear step-by-step deletion instructions the user can follow immediately.",
+                "input_schema": [
+                    "type": "object",
+                    "properties": [
+                        "app_name": [
+                            "type": "string",
+                            "description": "The display name of the app to delete (e.g. 'Instagram', 'TikTok')"
+                        ]
+                    ],
+                    "required": ["app_name"]
+                ] as [String: Any]
+            ],
+            [
+                "name": "open_screen_time",
+                "description": "Open the Screen Time page in iOS Settings where the user can set app limits, schedule downtime, configure content & privacy restrictions, and manage communication limits.",
+                "input_schema": [
+                    "type": "object",
+                    "properties": [:],
+                    "required": []
+                ] as [String: Any]
+            ]
+        ]
+    }
+
     enum Tools {
-        static let all: [[String: Any]] = SMS.tools + AppLauncher.tools
+        static let all: [[String: Any]] = SMS.tools + AppLauncher.tools + DeviceControl.tools
     }
 }

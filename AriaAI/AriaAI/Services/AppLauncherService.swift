@@ -94,6 +94,23 @@ final class AppLauncherService {
         }
     }
 
+    func openScreenTime() async -> Bool {
+        for scheme in ["App-prefs:root=SCREEN_TIME", "App-prefs:SCREEN_TIME"] {
+            if let url = URL(string: scheme) {
+                let opened = await withCheckedContinuation { cont in
+                    UIApplication.shared.open(url, options: [:]) { cont.resume(returning: $0) }
+                }
+                if opened { return true }
+            }
+        }
+        if let url = URL(string: UIApplication.openSettingsURLString) {
+            return await withCheckedContinuation { cont in
+                UIApplication.shared.open(url, options: [:]) { cont.resume(returning: $0) }
+            }
+        }
+        return false
+    }
+
     private func canOpen(_ urlString: String) -> Bool {
         guard let url = URL(string: urlString) else { return false }
         return UIApplication.shared.canOpenURL(url)
