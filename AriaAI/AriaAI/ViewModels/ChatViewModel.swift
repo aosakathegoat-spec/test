@@ -21,8 +21,8 @@ class ChatViewModel: ObservableObject {
     private var activeStreamTask: Task<Void, Never>?
 
     init() {
-        loadWelcomeMessage()
         loadConversations()
+        restoreCurrentSession()
     }
 
     // MARK: - Sending
@@ -166,6 +166,7 @@ class ChatViewModel: ObservableObject {
         saveCurrentSession()
         messages = []
         currentSessionID = UUID()
+        UserDefaults.standard.removeObject(forKey: Constants.UserDefaultsKeys.currentSession)
         loadWelcomeMessage()
     }
 
@@ -176,6 +177,17 @@ class ChatViewModel: ObservableObject {
             content: "Hi \(name)! I'm Aria, your AI assistant. I can help you with emails, answer questions, analyze images, and more. What can I do for you today?"
         )
         messages = [greeting]
+    }
+
+    private func restoreCurrentSession() {
+        if let idStr = UserDefaults.standard.string(forKey: Constants.UserDefaultsKeys.currentSession),
+           let uuid = UUID(uuidString: idStr),
+           let session = conversations.first(where: { $0.id == uuid }) {
+            messages = session.messages
+            currentSessionID = session.id
+        } else {
+            loadWelcomeMessage()
+        }
     }
 
     private func saveCurrentSession() {
@@ -190,6 +202,7 @@ class ChatViewModel: ObservableObject {
         conversations.insert(session, at: 0)
         conversations = Array(conversations.prefix(20))
         storeSessions()
+        UserDefaults.standard.set(currentSessionID.uuidString, forKey: Constants.UserDefaultsKeys.currentSession)
     }
 
     private func loadConversations() {
@@ -208,6 +221,7 @@ class ChatViewModel: ObservableObject {
         saveCurrentSession()
         messages = session.messages
         currentSessionID = session.id
+        UserDefaults.standard.set(session.id.uuidString, forKey: Constants.UserDefaultsKeys.currentSession)
     }
 
     func deleteSession(_ session: ChatSession) {

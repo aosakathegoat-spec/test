@@ -71,6 +71,7 @@ enum Constants {
         static let gmailEmail      = "gmail_email"
         static let userName        = "user_name"
         static let chatSessions    = "chat_sessions"
+        static let currentSession  = "current_chat_session"
     }
 
     enum Gmail {

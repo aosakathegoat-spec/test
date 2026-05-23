@@ -87,8 +87,9 @@ class EmailService: ObservableObject {
                     cont.resume(throwing: EmailError.authFailed(error.localizedDescription))
                     return
                 }
-                guard let code = URLComponents(url: callbackURL!, resolvingAgainstBaseURL: false)?
-                        .queryItems?.first(where: { $0.name == "code" })?.value
+                guard let callbackURL,
+                      let code = URLComponents(url: callbackURL, resolvingAgainstBaseURL: false)?
+                          .queryItems?.first(where: { $0.name == "code" })?.value
                 else {
                     cont.resume(throwing: EmailError.authFailed("No auth code returned"))
                     return
