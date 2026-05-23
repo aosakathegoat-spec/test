@@ -398,17 +398,29 @@ struct ChatView: View {
                         List {
                             ForEach(vm.conversations) { session in
                                 Button {
+                                    guard session.id != vm.currentSessionID else {
+                                        showSessions = false
+                                        return
+                                    }
                                     vm.loadSession(session)
                                     showSessions = false
                                 } label: {
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Text(session.title)
-                                            .font(Theme.Typography.subheadline(.medium))
-                                            .foregroundStyle(Theme.Colors.textPrimary)
-                                            .lineLimit(1)
-                                        Text(session.date.emailDateString)
-                                            .font(Theme.Typography.caption())
-                                            .foregroundStyle(Theme.Colors.textSecondary)
+                                    HStack {
+                                        VStack(alignment: .leading, spacing: 4) {
+                                            Text(session.title)
+                                                .font(Theme.Typography.subheadline(.medium))
+                                                .foregroundStyle(Theme.Colors.textPrimary)
+                                                .lineLimit(1)
+                                            Text(session.date.emailDateString)
+                                                .font(Theme.Typography.caption())
+                                                .foregroundStyle(Theme.Colors.textSecondary)
+                                        }
+                                        Spacer()
+                                        if session.id == vm.currentSessionID {
+                                            Image(systemName: "checkmark")
+                                                .font(.system(size: 13, weight: .semibold))
+                                                .foregroundStyle(Theme.Colors.primary)
+                                        }
                                     }
                                 }
                                 .listRowBackground(Color.clear)

@@ -177,6 +177,7 @@ struct SettingsView: View {
                         ) {
                             vm.saveAPIKey()
                         }
+                        .animation(Theme.Animation.smooth, value: vm.apiKeySaved)
 
                         if !vm.apiKeyInput.isEmpty {
                             Button("Clear") { vm.clearAPIKey() }
@@ -187,8 +188,10 @@ struct SettingsView: View {
                                 .background(Theme.Colors.error.opacity(0.1))
                                 .clipShape(RoundedRectangle(cornerRadius: Theme.Glass.cornerRadiusSm))
                                 .buttonStyle(.plain)
+                                .transition(.scale(scale: 0.85).combined(with: .opacity))
                         }
                     }
+                    .animation(Theme.Animation.snappy, value: vm.apiKeyInput.isEmpty)
                 }
             }
         }
@@ -310,8 +313,10 @@ struct SettingsView: View {
                         .foregroundStyle(Theme.Colors.textPrimary)
                         .tint(Theme.Colors.primary)
                         .colorScheme(.dark)
+                        .transition(.opacity.combined(with: .move(edge: .top)))
                     }
                 }
+                .animation(Theme.Animation.smooth, value: vm.morningBriefingEnabled)
             }
             .disabled(!tokenTracker.plan.hasMorningBriefing)
             .opacity(tokenTracker.plan.hasMorningBriefing ? 1 : 0.5)

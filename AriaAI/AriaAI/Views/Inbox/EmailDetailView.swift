@@ -96,7 +96,7 @@ struct EmailDetailView: View {
                     .padding(Theme.Spacing.md)
                 }
             }
-            .navigationTitle("Email")
+            .navigationTitle(email.subject.isEmpty ? "Email" : email.subject)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
