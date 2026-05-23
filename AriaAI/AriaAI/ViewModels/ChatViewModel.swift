@@ -229,7 +229,7 @@ class ChatViewModel: ObservableObject {
 
     var sessionTitle: String {
         guard let first = messages.first(where: { $0.isUser }) else { return "New conversation" }
-        let text = first.content.trimmed
+        let text = first.content.components(separatedBy: .newlines).joined(separator: " ").trimmed
         return text.count > 40 ? String(text.prefix(40)) + "…" : text
     }
 

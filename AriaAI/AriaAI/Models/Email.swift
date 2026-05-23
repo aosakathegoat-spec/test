@@ -181,8 +181,15 @@ extension GmailMessage {
     }
 
     private func hasAttachmentParts(_ payload: GmailPayload?) -> Bool {
-        guard let parts = payload?.parts else { return false }
-        return parts.contains { !($0.filename?.isEmpty ?? true) }
+        containsAttachment(in: payload?.parts ?? [])
+    }
+
+    private func containsAttachment(in parts: [GmailPart]) -> Bool {
+        for part in parts {
+            if !((part.filename ?? "").isEmpty) { return true }
+            if containsAttachment(in: part.parts ?? []) { return true }
+        }
+        return false
     }
 }
 
