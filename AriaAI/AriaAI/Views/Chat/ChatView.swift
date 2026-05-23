@@ -188,6 +188,7 @@ struct ChatView: View {
                     .frame(width: 40, height: 40)
             }
             .buttonStyle(.plain)
+            .accessibilityLabel(appState.plan.canAnalyzeImages ? "Attach image" : "Attach image — upgrade required")
 
             // Text field
             HStack(alignment: .bottom, spacing: 0) {
@@ -317,6 +318,7 @@ struct ChatView: View {
                 }
                 .buttonStyle(.plain)
                 .disabled(!voiceService.isSpeaking)
+                .accessibilityLabel("Stop Aria speaking")
 
                 // Main voice button
                 VoiceButton(
@@ -346,6 +348,7 @@ struct ChatView: View {
                         .clipShape(Circle())
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel("Switch to text input")
             }
         }
         .padding(.vertical, Theme.Spacing.md)

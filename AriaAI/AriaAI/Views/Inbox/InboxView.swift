@@ -123,6 +123,7 @@ struct InboxView: View {
                                 .foregroundStyle(Theme.Colors.textTertiary)
                         }
                         .buttonStyle(.plain)
+                        .accessibilityLabel("Clear search")
                     }
                 }
                 .padding(.horizontal, 12)
@@ -382,6 +383,9 @@ struct EmailRowView: View {
         .padding(.vertical, Theme.Spacing.sm)
         .background(email.isRead ? Color.clear : Color.white.opacity(0.03))
         .contentShape(Rectangle())
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(email.isRead ? "" : "Unread. ")\(email.from.displayName). \(email.subject). \(email.snippet)")
+        .accessibilityHint("Double tap to open email")
     }
 
     private func avatarColors(_ name: String) -> [Color] {

@@ -159,6 +159,7 @@ struct SettingsView: View {
                                 .foregroundStyle(Theme.Colors.textSecondary)
                         }
                         .buttonStyle(.plain)
+                        .accessibilityLabel(vm.showAPIKey ? "Hide API key" : "Show API key")
                     }
                     .padding(Theme.Spacing.sm)
                     .background(Color.white.opacity(0.06))

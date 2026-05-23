@@ -42,6 +42,8 @@ struct MessageBubbleView: View {
                 .font(Theme.Typography.caption())
                 .foregroundStyle(Theme.Colors.textTertiary)
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("You, \(message.timestamp.shortTimeString): \(message.content)")
     }
 
     private var assistantBubble: some View {
@@ -106,6 +108,8 @@ struct MessageBubbleView: View {
                             .foregroundStyle(Theme.Colors.textTertiary)
                         }
                         .buttonStyle(.plain)
+                        .accessibilityLabel("\(tokens.totalTokens.tokenFormatted) tokens used")
+                        .accessibilityHint("Double tap to see breakdown")
 
                         if showTokens {
                             tokenDetail(tokens)
@@ -142,6 +146,7 @@ struct MessageBubbleView: View {
             }
         }
         .padding(.vertical, 4)
+        .accessibilityLabel("Aria is thinking")
     }
 
     private var streamingCursor: some View {
