@@ -221,6 +221,7 @@ struct GoogleSignInWebView: View {
         .onAppear {
             guard !didAttempt else { return }
             didAttempt = true
+            auth.isSigningIn = true
             Task { await startGoogleAuth() }
         }
     }
@@ -272,6 +273,7 @@ struct GoogleSignInWebView: View {
                 auth.authError = error.localizedDescription
             }
         }
+        auth.isSigningIn = false
         isPresented = false
     }
 

@@ -96,7 +96,7 @@ struct SoundWaveView: View {
     let barCount = 7
 
     @State private var amplitudes: [CGFloat] = Array(repeating: 0.3, count: 7)
-    private let timer = Timer.publish(every: 0.12, on: .main, in: .common).autoconnect()
+    @State private var timerTask: Task<Void, Never>?
 
     var body: some View {
         HStack(spacing: 3) {
@@ -116,13 +116,33 @@ struct SoundWaveView: View {
             }
         }
         .frame(height: 40)
-        .onReceive(timer) { _ in
-            guard isActive else { return }
-            withAnimation {
-                for i in 0..<barCount {
-                    amplitudes[i] = CGFloat.random(in: 0.2...1.0)
+        .onChange(of: isActive) { _, active in
+            if active { startTimer() } else { stopTimer() }
+        }
+        .onAppear { if isActive { startTimer() } }
+        .onDisappear { stopTimer() }
+    }
+
+    private func startTimer() {
+        timerTask?.cancel()
+        timerTask = Task { @MainActor in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .milliseconds(120))
+                guard !Task.isCancelled else { break }
+                withAnimation {
+                    for i in 0..<barCount {
+                        amplitudes[i] = CGFloat.random(in: 0.2...1.0)
+                    }
                 }
             }
+        }
+    }
+
+    private func stopTimer() {
+        timerTask?.cancel()
+        timerTask = nil
+        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+            for i in 0..<barCount { amplitudes[i] = 0.3 }
         }
     }
 }

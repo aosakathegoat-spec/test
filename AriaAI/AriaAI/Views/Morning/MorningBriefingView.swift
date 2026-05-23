@@ -198,9 +198,16 @@ struct MorningBriefingView: View {
                         Task { await vm.generate() }
                     } label: {
                         HStack(spacing: 6) {
-                            Image(systemName: "arrow.clockwise")
-                                .font(.system(size: 13))
-                            Text("Refresh")
+                            if vm.isGenerating {
+                                ProgressView()
+                                    .progressViewStyle(.circular)
+                                    .tint(Theme.Colors.textSecondary)
+                                    .scaleEffect(0.7)
+                            } else {
+                                Image(systemName: "arrow.clockwise")
+                                    .font(.system(size: 13))
+                            }
+                            Text(vm.isGenerating ? "Refreshing…" : "Refresh")
                                 .font(Theme.Typography.subheadline(.medium))
                         }
                         .foregroundStyle(Theme.Colors.textSecondary)
@@ -211,6 +218,7 @@ struct MorningBriefingView: View {
                         .overlay(Capsule().stroke(Color.white.opacity(0.1), lineWidth: 1))
                     }
                     .buttonStyle(.plain)
+                    .disabled(vm.isGenerating)
                 }
             }
         }

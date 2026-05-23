@@ -65,8 +65,10 @@ struct EmailDetailView: View {
                                 gradient: Theme.Colors.gradientPrimary
                             ) {
                                 vm.draftEmail = DraftEmail()
-                                Task { await vm.generateAIDraft(replyTo: email) }
+                                vm.draftEmail.to = email.from.email
+                                vm.draftEmail.subject = "Re: \(email.subject)"
                                 vm.showCompose = true
+                                Task { await vm.generateAIDraft(replyTo: email) }
                                 dismiss()
                             }
 
