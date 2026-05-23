@@ -177,9 +177,7 @@ class VoiceService: NSObject, ObservableObject {
                 try session.setCategory(.playback, mode: .default, options: [.allowBluetooth])
             }
             try session.setActive(true, options: .notifyOthersOnDeactivation)
-        } catch {
-            print("Audio session error: \(error)")
-        }
+        } catch { }
     }
 
     // MARK: - Permissions
