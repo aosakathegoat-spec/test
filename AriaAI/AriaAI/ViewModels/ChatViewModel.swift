@@ -160,6 +160,7 @@ class ChatViewModel: ObservableObject {
 
     // MARK: - Sessions
     func newConversation() {
+        if isStreaming { cancelStreaming() }
         saveCurrentSession()
         messages = []
         currentSessionID = UUID()
@@ -216,6 +217,7 @@ class ChatViewModel: ObservableObject {
     }
 
     func loadSession(_ session: ChatSession) {
+        if isStreaming { cancelStreaming() }
         saveCurrentSession()
         messages = session.messages
         currentSessionID = session.id
