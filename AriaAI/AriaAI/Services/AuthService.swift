@@ -151,6 +151,12 @@ class AuthService: ObservableObject {
         provider      = nil
         displayName   = ""
         userEmail     = ""
+        // AppState/TokenTracker are singletons that don't re-init — reset
+        // in-memory state so re-login with a new account shows onboarding
+        // and the correct plan tier, not stale data from the previous user.
+        AppState.shared.hasCompletedOnboarding = false
+        AppState.shared.userName = ""
+        TokenTracker.shared.updatePlan(.free)
     }
 
     // MARK: - Persistence
