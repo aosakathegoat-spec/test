@@ -35,6 +35,11 @@ struct InboxView: View {
                 await vm.loadEmails()
             }
         }
+        .onChange(of: appState.emailService.isAuthenticated) { _, authenticated in
+            if authenticated && appState.plan.canReadEmails {
+                Task { await vm.loadEmails() }
+            }
+        }
     }
 
     private var navBar: some View {

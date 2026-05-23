@@ -111,8 +111,10 @@ struct TokenUsageBar: View {
 
                 if overallPercent > 0.8 {
                     warningBanner
+                        .transition(.opacity.combined(with: .move(edge: .bottom)))
                 }
             }
+            .animation(.easeInOut(duration: 0.25), value: overallPercent > 0.8)
         }
     }
 
