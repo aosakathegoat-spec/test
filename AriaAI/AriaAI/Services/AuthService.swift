@@ -124,11 +124,28 @@ class AuthService: ObservableObject {
 
     // MARK: - Sign Out
     func signOut() {
+        // Clear auth credentials
         KeychainService.delete(Keys.userID)
+        KeychainService.delete(Keys.apiKey)
         UserDefaults.standard.removeObject(forKey: Keys.provider)
         UserDefaults.standard.removeObject(forKey: Keys.name)
         UserDefaults.standard.removeObject(forKey: Keys.email)
         UserDefaults.standard.removeObject(forKey: Keys.hasAge)
+        UserDefaults.standard.removeObject(forKey: Keys.birthMonth)
+        UserDefaults.standard.removeObject(forKey: Keys.birthDay)
+        UserDefaults.standard.removeObject(forKey: Keys.birthYear)
+        // Disconnect Gmail so the next user starts fresh
+        EmailService.shared.disconnect()
+        // Clear per-user app data
+        UserDefaults.standard.removeObject(forKey: Constants.UserDefaultsKeys.chatSessions)
+        UserDefaults.standard.removeObject(forKey: Constants.UserDefaultsKeys.currentSession)
+        UserDefaults.standard.removeObject(forKey: Constants.UserDefaultsKeys.userName)
+        UserDefaults.standard.removeObject(forKey: Constants.UserDefaultsKeys.onboardingDone)
+        UserDefaults.standard.removeObject(forKey: Constants.UserDefaultsKeys.inputTokens)
+        UserDefaults.standard.removeObject(forKey: Constants.UserDefaultsKeys.outputTokens)
+        UserDefaults.standard.removeObject(forKey: Constants.UserDefaultsKeys.cachedTokens)
+        UserDefaults.standard.removeObject(forKey: Constants.UserDefaultsKeys.resetDate)
+        UserDefaults.standard.removeObject(forKey: Constants.UserDefaultsKeys.plan)
         isLoggedIn    = false
         hasEnteredAge = false
         provider      = nil
