@@ -54,22 +54,21 @@ struct MainTabView: View {
 
     var body: some View {
         ZStack(alignment: .bottom) {
-            // Page content — full screen
+            // Keep all tab views alive so their ViewModels survive tab switches.
+            // Opacity + allowsHitTesting replaces switch/recreate pattern.
             ZStack {
-                switch selectedTab {
-                case .chat:
-                    ChatView()
-                        .transition(.opacity)
-                case .inbox:
-                    InboxView()
-                        .transition(.opacity)
-                case .morning:
-                    MorningBriefingView()
-                        .transition(.opacity)
-                case .settings:
-                    SettingsView()
-                        .transition(.opacity)
-                }
+                ChatView()
+                    .opacity(selectedTab == .chat ? 1 : 0)
+                    .allowsHitTesting(selectedTab == .chat)
+                InboxView()
+                    .opacity(selectedTab == .inbox ? 1 : 0)
+                    .allowsHitTesting(selectedTab == .inbox)
+                MorningBriefingView()
+                    .opacity(selectedTab == .morning ? 1 : 0)
+                    .allowsHitTesting(selectedTab == .morning)
+                SettingsView()
+                    .opacity(selectedTab == .settings ? 1 : 0)
+                    .allowsHitTesting(selectedTab == .settings)
             }
             .animation(.easeOut(duration: 0.18), value: selectedTab)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
