@@ -2,6 +2,7 @@ import SwiftUI
 
 struct InboxView: View {
     @StateObject private var vm = InboxViewModel()
+    @ObservedObject private var tokenTracker = TokenTracker.shared
     @EnvironmentObject private var appState: AppState
     @State private var showEmailDetail: EmailMessage?
     @State private var showConnectSheet = false
@@ -31,12 +32,12 @@ struct InboxView: View {
             Text(vm.error ?? "")
         }
         .task {
-            if appState.emailService.isAuthenticated && appState.plan.canReadEmails {
+            if appState.emailService.isAuthenticated && tokenTracker.plan.canReadEmails {
                 await vm.loadEmails()
             }
         }
         .onChange(of: appState.emailService.isAuthenticated) { _, authenticated in
-            if authenticated && appState.plan.canReadEmails {
+            if authenticated && tokenTracker.plan.canReadEmails {
                 Task { await vm.loadEmails() }
             }
         }
@@ -143,7 +144,7 @@ struct InboxView: View {
     private var content: some View {
         if !appState.emailService.isAuthenticated {
             connectPrompt
-        } else if !appState.plan.canReadEmails {
+        } else if !tokenTracker.plan.canReadEmails {
             upgradePrompt
         } else if vm.isLoading && vm.emails.isEmpty {
             loadingView

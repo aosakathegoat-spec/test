@@ -3,6 +3,7 @@ import AVFoundation
 
 struct SettingsView: View {
     @StateObject private var vm = SettingsViewModel()
+    @ObservedObject private var tokenTracker = TokenTracker.shared
     @EnvironmentObject private var appState: AppState
     @EnvironmentObject private var auth: AuthService
     @State private var showPricing = false
@@ -55,7 +56,7 @@ struct SettingsView: View {
                         .foregroundStyle(Theme.Colors.textPrimary)
                         .onSubmit { vm.saveUserName() }
                     HStack(spacing: 6) {
-                        GlassBadge(text: vm.plan.displayName, color: vm.plan.accentColor)
+                        GlassBadge(text: tokenTracker.plan.displayName, color: tokenTracker.plan.accentColor)
                         if !appState.emailService.userEmail.isEmpty {
                             Text(appState.emailService.userEmail)
                                 .font(Theme.Typography.caption())
@@ -73,7 +74,7 @@ struct SettingsView: View {
     private var tokenUsageSection: some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
             sectionHeader("Usage")
-            TokenUsageBar(usage: vm.usage, plan: vm.plan)
+            TokenUsageBar(usage: tokenTracker.usage, plan: tokenTracker.plan)
         }
     }
 
@@ -88,14 +89,14 @@ struct SettingsView: View {
                             Text("Current Plan")
                                 .font(Theme.Typography.footnote())
                                 .foregroundStyle(Theme.Colors.textSecondary)
-                            Text(vm.plan.displayName)
+                            Text(tokenTracker.plan.displayName)
                                 .font(Theme.Typography.title3(.bold))
-                                .foregroundStyle(vm.plan.accentColor)
-                                .animation(Theme.Animation.spring, value: vm.plan)
+                                .foregroundStyle(tokenTracker.plan.accentColor)
+                                .animation(Theme.Animation.spring, value: tokenTracker.plan)
                                 .contentTransition(.interpolate)
                         }
                         Spacer()
-                        if vm.plan != .ultra {
+                        if tokenTracker.plan != .ultra {
                             GradientButton(
                                 title: "Upgrade",
                                 gradient: Theme.Colors.gradientAccent,
@@ -310,10 +311,10 @@ struct SettingsView: View {
                     }
                 }
             }
-            .disabled(!vm.plan.hasMorningBriefing)
-            .opacity(vm.plan.hasMorningBriefing ? 1 : 0.5)
-            .animation(Theme.Animation.smooth, value: vm.plan.hasMorningBriefing)
-            if !vm.plan.hasMorningBriefing {
+            .disabled(!tokenTracker.plan.hasMorningBriefing)
+            .opacity(tokenTracker.plan.hasMorningBriefing ? 1 : 0.5)
+            .animation(Theme.Animation.smooth, value: tokenTracker.plan.hasMorningBriefing)
+            if !tokenTracker.plan.hasMorningBriefing {
                 Text("Upgrade to Pro or Ultra to access morning briefings.")
                     .font(Theme.Typography.caption())
                     .foregroundStyle(Theme.Colors.textTertiary)
@@ -502,7 +503,13 @@ struct SettingsView: View {
                         )
                     ) {
                         Task {
-                            try? await appState.emailService.authenticate()
+                            do {
+                                try await appState.emailService.authenticate()
+                            } catch EmailError.authCancelled {
+                                // user dismissed the browser — close sheet silently
+                            } catch {
+                                appState.showError(error.localizedDescription)
+                            }
                             showGmailConnect = false
                         }
                     }

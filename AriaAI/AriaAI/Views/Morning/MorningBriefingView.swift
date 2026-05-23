@@ -3,6 +3,7 @@ import Combine
 
 struct MorningBriefingView: View {
     @StateObject private var vm = MorningBriefingViewModel()
+    @ObservedObject private var tokenTracker = TokenTracker.shared
     @EnvironmentObject private var appState: AppState
     @State private var showScheduler = false
 
@@ -64,7 +65,7 @@ struct MorningBriefingView: View {
 
     @ViewBuilder
     private var briefingContent: some View {
-        if !appState.plan.hasMorningBriefing {
+        if !tokenTracker.plan.hasMorningBriefing {
             upgradeCard
         } else if vm.isGenerating {
             generatingCard
@@ -287,8 +288,8 @@ struct MorningBriefingView: View {
                 }
             }
         }
-        .disabled(!appState.plan.hasMorningBriefing)
-        .opacity(appState.plan.hasMorningBriefing ? 1 : 0.5)
+        .disabled(!tokenTracker.plan.hasMorningBriefing)
+        .opacity(tokenTracker.plan.hasMorningBriefing ? 1 : 0.5)
     }
 
     private var schedulerSheet: some View {
@@ -362,6 +363,7 @@ class MorningBriefingViewModel: ObservableObject {
         components.minute = briefingService.scheduledMinute
         scheduledTime = Calendar.current.date(from: components) ?? Date()
 
+        guard cancellables.isEmpty else { return }
         briefingService.$isScheduled
             .receive(on: RunLoop.main)
             .assign(to: \.isScheduled, on: self)
@@ -369,7 +371,7 @@ class MorningBriefingViewModel: ObservableObject {
     }
 
     func generate() async {
-        guard let appState, appState.plan.hasMorningBriefing else { return }
+        guard let appState, TokenTracker.shared.plan.hasMorningBriefing else { return }
         spinAngle = 0
         isGenerating = true
         do {

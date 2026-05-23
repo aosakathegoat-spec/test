@@ -137,12 +137,13 @@ struct ComposeEmailView: View {
                                     .frame(minHeight: 200)
 
                                 if vm.draftEmail.body.isEmpty {
-                                    Text("Write your message…")
+                                    Text(vm.isGeneratingDraft ? "Generating AI draft…" : "Write your message…")
                                         .font(Theme.Typography.body())
-                                        .foregroundStyle(Theme.Colors.textTertiary)
+                                        .foregroundStyle(vm.isGeneratingDraft ? Theme.Colors.textSecondary : Theme.Colors.textTertiary)
                                         .padding(.top, 8)
                                         .padding(.leading, 4)
                                         .allowsHitTesting(false)
+                                        .animation(Theme.Animation.quick, value: vm.isGeneratingDraft)
                                 }
                             }
                         }

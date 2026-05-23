@@ -46,7 +46,7 @@ class PurchaseService: ObservableObject {
         switch result {
         case .success(let verification):
             let transaction = try checkVerified(verification)
-            await TokenTracker.shared.updatePlan(plan)
+            TokenTracker.shared.updatePlan(plan)
             await transaction.finish()
             return true
         case .userCancelled:
@@ -75,7 +75,7 @@ class PurchaseService: ObservableObject {
                 activePlan = .core
             }
         }
-        await TokenTracker.shared.updatePlan(activePlan)
+        TokenTracker.shared.updatePlan(activePlan)
     }
 
     func product(for plan: SubscriptionPlan) -> Product? {
