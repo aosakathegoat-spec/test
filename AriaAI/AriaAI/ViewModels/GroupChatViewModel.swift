@@ -17,6 +17,18 @@ class GroupChatViewModel: ObservableObject {
         self.group = group
         self.messages = group.messages
         if messages.isEmpty { loadWelcomeMessage() }
+
+        // Fetch remote messages and subscribe to realtime if backed by Supabase
+        if let sbID = group.supabaseID {
+            Task { await loadRemoteMessages(groupID: sbID) }
+            subscribeRealtime(groupID: group.id.uuidString, supabaseID: group.supabaseID)
+        }
+    }
+
+    deinit {
+        // SupabaseRealtimeManager is @unchecked Sendable with its own lock — safe to call from deinit.
+        guard let sbID = group.supabaseID else { return }
+        SupabaseRealtimeManager.shared.unsubscribe(groupID: sbID)
     }
 
     private func loadWelcomeMessage() {
@@ -27,6 +39,42 @@ class GroupChatViewModel: ObservableObject {
         persist()
     }
 
+    // MARK: - Supabase integration
+
+    private func loadRemoteMessages(groupID: String) async {
+        guard let sbMessages = try? await SupabaseSocialService.shared.fetchMessages(groupID: groupID),
+              !sbMessages.isEmpty
+        else { return }
+
+        let converted = sbMessages.map { sb in
+            Message(
+                id: UUID(uuidString: sb.id) ?? UUID(),
+                role: MessageRole(rawValue: sb.role) ?? .assistant,
+                content: sb.content
+            )
+        }
+        // Use remote as the source of truth
+        messages = converted
+        persist()
+    }
+
+    private func subscribeRealtime(groupID: String, supabaseID: String?) {
+        guard let sbID = supabaseID else { return }
+        SupabaseRealtimeManager.shared.subscribe(groupID: sbID) { [weak self] sbMsg in
+            guard let self else { return }
+            // Ignore messages we just sent (already in local messages array)
+            let msgID = UUID(uuidString: sbMsg.id) ?? UUID()
+            guard !self.messages.contains(where: { $0.id == msgID }) else { return }
+            // Only display user messages from other members (Aria's response is handled locally)
+            guard sbMsg.role == "user" else { return }
+            let msg = Message(id: msgID, role: .user, content: sbMsg.content)
+            self.messages.append(msg)
+            self.scrollToBottom = true
+        }
+    }
+
+    // MARK: - System prompt
+
     private var systemPrompt: String {
         let members = group.memberNames.isEmpty ? "just you" : group.memberNames.joined(separator: ", ")
         return """
@@ -36,6 +84,8 @@ class GroupChatViewModel: ObservableObject {
         planning, summarizing, and more. Keep responses concise and group-friendly.
         """
     }
+
+    // MARK: - Send
 
     func sendMessage() async {
         let text = inputText.trimmed
@@ -55,6 +105,11 @@ class GroupChatViewModel: ObservableObject {
         scrollToBottom = true
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
 
+        // Persist user message to Supabase
+        if let sbID = group.supabaseID {
+            Task { try? await SupabaseSocialService.shared.sendMessage(groupID: sbID, role: "user", content: text) }
+        }
+
         let assistantID = UUID()
         streamingMessageID = assistantID
         messages.append(Message(id: assistantID, role: .assistant, content: "", isStreaming: true))
@@ -66,13 +121,13 @@ class GroupChatViewModel: ObservableObject {
 
         let task = Task { @MainActor [weak self] in
             guard let self else { return }
+            var fullText = ""
             do {
                 let stream = await AIService.shared.streamMessage(
                     messages: windowed,
                     systemPrompt: systemPrompt,
                     plan: appState.plan
                 )
-                var fullText = ""
                 for try await event in stream {
                     switch event {
                     case .text(let chunk):
@@ -103,6 +158,11 @@ class GroupChatViewModel: ObservableObject {
             streamingMessageID = nil
             activeStreamTask = nil
             persist()
+
+            // Persist Aria's response to Supabase
+            if !fullText.isEmpty, let sbID = group.supabaseID {
+                Task { try? await SupabaseSocialService.shared.sendMessage(groupID: sbID, role: "assistant", content: fullText) }
+            }
         }
         activeStreamTask = task
         await task.value

@@ -16,6 +16,8 @@ final class FriendsService: ObservableObject {
         loadUsername()
         loadFriends()
         loadGroups()
+        // Kick off background sync without blocking init
+        Task { await syncFromSupabase() }
     }
 
     // MARK: - Username
@@ -36,6 +38,12 @@ final class FriendsService: ObservableObject {
         guard !cleaned.isEmpty else { return }
         myUsername = cleaned
         UserDefaults.standard.set(myUsername, forKey: usernameKey)
+        Task {
+            try? await SupabaseSocialService.shared.upsertProfile(
+                username: cleaned,
+                displayName: AppState.shared.userName
+            )
+        }
     }
 
     static func generateUsername() -> String {
@@ -48,17 +56,46 @@ final class FriendsService: ObservableObject {
 
     // MARK: - Friends
 
+    /// Looks up a username on Supabase, then adds locally and remotely.
+    func addFriendByUsername(_ username: String, displayName: String = "") async throws {
+        let trimmed = username.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, trimmed != myUsername else { return }
+        guard !friends.contains(where: { $0.username == trimmed }) else { return }
+
+        // Optimistic local add
+        friends.append(Friend(username: trimmed, displayName: displayName))
+        saveFriends()
+
+        // Sync to Supabase if authenticated
+        guard SupabaseClient.shared.isAuthenticated else { return }
+        if let profile = try? await SupabaseSocialService.shared.lookupUser(username: trimmed) {
+            try? await SupabaseSocialService.shared.addFriend(friendID: profile.id)
+        }
+    }
+
     func addFriend(username: String, displayName: String = "") {
         let trimmed = username.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty, trimmed != myUsername else { return }
         guard !friends.contains(where: { $0.username == trimmed }) else { return }
         friends.append(Friend(username: trimmed, displayName: displayName))
         saveFriends()
+        Task {
+            guard SupabaseClient.shared.isAuthenticated else { return }
+            if let profile = try? await SupabaseSocialService.shared.lookupUser(username: trimmed) {
+                try? await SupabaseSocialService.shared.addFriend(friendID: profile.id)
+            }
+        }
     }
 
     func removeFriend(_ friend: Friend) {
         friends.removeAll { $0.id == friend.id }
         saveFriends()
+        Task {
+            guard SupabaseClient.shared.isAuthenticated else { return }
+            if let profile = try? await SupabaseSocialService.shared.lookupUser(username: friend.username) {
+                try? await SupabaseSocialService.shared.removeFriend(friendID: profile.id)
+            }
+        }
     }
 
     // MARK: - Groups
@@ -67,7 +104,31 @@ final class FriendsService: ObservableObject {
         let group = GroupConversation(name: name, memberNames: memberNames)
         groups.insert(group, at: 0)
         saveGroups()
+        Task { await syncCreateGroup(group, memberNames: memberNames) }
         return group
+    }
+
+    private func syncCreateGroup(_ group: GroupConversation, memberNames: [String]) async {
+        guard SupabaseClient.shared.isAuthenticated else { return }
+        // Resolve usernames to Supabase UUIDs
+        var memberIDs: [String] = []
+        for username in memberNames {
+            if let profile = try? await SupabaseSocialService.shared.lookupUser(username: username) {
+                memberIDs.append(profile.id)
+            }
+        }
+        do {
+            let sbGroup = try await SupabaseSocialService.shared.createGroup(
+                name: group.name, memberIDs: memberIDs
+            )
+            // Store the Supabase group ID so GroupChatViewModel can use it
+            if var updated = groups.first(where: { $0.id == group.id }) {
+                updated.supabaseID = sbGroup.id
+                saveGroup(updated)
+            }
+        } catch {
+            print("[Supabase] createGroup failed: \(error.localizedDescription)")
+        }
     }
 
     func saveGroup(_ group: GroupConversation) {
@@ -82,6 +143,47 @@ final class FriendsService: ObservableObject {
 
     func deleteGroup(_ group: GroupConversation) {
         groups.removeAll { $0.id == group.id }
+        saveGroups()
+    }
+
+    // MARK: - Supabase sync
+
+    func syncFromSupabase() async {
+        guard SupabaseClient.shared.isAuthenticated else { return }
+        await syncFriends()
+        await syncGroups()
+    }
+
+    private func syncFriends() async {
+        guard let friendships = try? await SupabaseSocialService.shared.fetchFriends() else { return }
+        let remoteFriends = friendships.compactMap { fs -> Friend? in
+            guard let profile = fs.friend else { return nil }
+            return Friend(username: profile.username, displayName: profile.displayName ?? profile.username)
+        }
+        // Merge: keep locals not in remote, add any remote not already local
+        var merged = friends
+        for remote in remoteFriends {
+            if !merged.contains(where: { $0.username == remote.username }) {
+                merged.append(remote)
+            }
+        }
+        friends = merged
+        saveFriends()
+    }
+
+    private func syncGroups() async {
+        guard let sbGroups = try? await SupabaseSocialService.shared.fetchGroups() else { return }
+        for sbGroup in sbGroups {
+            if !groups.contains(where: { $0.supabaseID == sbGroup.id }) {
+                let local = GroupConversation(
+                    name: sbGroup.name,
+                    memberNames: []  // members fetched lazily when group is opened
+                )
+                var updated = local
+                updated.supabaseID = sbGroup.id
+                groups.append(updated)
+            }
+        }
         saveGroups()
     }
 

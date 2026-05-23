@@ -24,15 +24,16 @@ class AuthService: ObservableObject {
     @Published var birthYear:  Int = 1995
 
     private enum Keys {
-        static let userID      = "aria_auth_user_id"      // keychain
-        static let apiKey      = "aria_api_key"            // keychain — moved from UserDefaults
-        static let provider    = "aria_auth_provider"
-        static let name        = "aria_auth_name"
-        static let email       = "aria_auth_email"
-        static let hasAge      = "aria_has_age"
-        static let birthMonth  = "aria_birth_month"
-        static let birthDay    = "aria_birth_day"
-        static let birthYear   = "aria_birth_year"
+        static let userID        = "aria_auth_user_id"      // keychain
+        static let apiKey        = "aria_api_key"            // keychain — moved from UserDefaults
+        static let identityToken = "aria_apple_id_token"    // keychain — used for Supabase auth
+        static let provider      = "aria_auth_provider"
+        static let name          = "aria_auth_name"
+        static let email         = "aria_auth_email"
+        static let hasAge        = "aria_has_age"
+        static let birthMonth    = "aria_birth_month"
+        static let birthDay      = "aria_birth_day"
+        static let birthYear     = "aria_birth_year"
     }
 
     private init() { loadState() }
@@ -55,9 +56,30 @@ class AuthService: ObservableObject {
             userEmail = email
         }
 
+        // Save identity token for Supabase auth exchange
+        if let tokenData = credential.identityToken,
+           let tokenString = String(data: tokenData, encoding: .utf8) {
+            KeychainService.set(tokenString, for: Keys.identityToken)
+            Task { await signInToSupabase(idToken: tokenString) }
+        }
+
         provider    = .apple
         isLoggedIn  = true
         isSigningIn = false
+    }
+
+    private func signInToSupabase(idToken: String) async {
+        do {
+            try await SupabaseClient.shared.signInWithApple(idToken: idToken)
+            let username = FriendsService.shared.myUsername
+            try await SupabaseSocialService.shared.upsertProfile(
+                username: username,
+                displayName: displayName
+            )
+        } catch {
+            // Non-fatal — app works fully offline; Supabase sync resumes next session
+            print("[Supabase] Sign-in failed: \(error.localizedDescription)")
+        }
     }
 
     func handleAppleError(_ error: Error) {
@@ -127,6 +149,8 @@ class AuthService: ObservableObject {
         // Clear auth credentials
         KeychainService.delete(Keys.userID)
         KeychainService.delete(Keys.apiKey)
+        KeychainService.delete(Keys.identityToken)
+        SupabaseClient.shared.signOut()
         UserDefaults.standard.removeObject(forKey: Keys.provider)
         UserDefaults.standard.removeObject(forKey: Keys.name)
         UserDefaults.standard.removeObject(forKey: Keys.email)
@@ -150,6 +174,9 @@ class AuthService: ObservableObject {
         UserDefaults.standard.removeObject(forKey: Constants.UserDefaultsKeys.briefingHour)
         UserDefaults.standard.removeObject(forKey: Constants.UserDefaultsKeys.briefingMinute)
         UserDefaults.standard.removeObject(forKey: Constants.UserDefaultsKeys.selectedVoice)
+        UserDefaults.standard.removeObject(forKey: Constants.UserDefaultsKeys.friendsUsername)
+        UserDefaults.standard.removeObject(forKey: "friends_list_v1")
+        UserDefaults.standard.removeObject(forKey: "group_conversations_v1")
         MorningBriefingService.shared.cancelDailyBriefing()
         isLoggedIn    = false
         hasEnteredAge = false

@@ -28,6 +28,8 @@ struct GroupConversation: Identifiable, Codable {
     var memberNames: [String]
     var messages: [Message]
     let createdAt: Date
+    /// Supabase row UUID — nil until the group has been synced to the backend.
+    var supabaseID: String?
 
     init(id: UUID = UUID(), name: String, memberNames: [String] = []) {
         self.id = id
@@ -35,6 +37,7 @@ struct GroupConversation: Identifiable, Codable {
         self.memberNames = memberNames
         self.messages = []
         self.createdAt = Date()
+        self.supabaseID = nil
     }
 
     var lastActivity: Date { messages.last?.timestamp ?? createdAt }
