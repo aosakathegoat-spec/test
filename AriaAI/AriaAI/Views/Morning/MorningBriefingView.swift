@@ -406,6 +406,8 @@ class MorningBriefingViewModel: ObservableObject {
             let emails = (try? await EmailService.shared.fetchInbox(maxResults: 10)) ?? []
             briefing = try await briefingService.generateBriefing(emails: emails)
             lastGenerated = Date()
+        } catch is CancellationError {
+            // Task was cancelled (view disappeared) — not a user-visible error
         } catch {
             appState.showError(error.localizedDescription)
         }

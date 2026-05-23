@@ -36,6 +36,8 @@ class InboxViewModel: ObservableObject {
         error = nil
         do {
             emails = try await emailService.fetchInbox()
+        } catch is CancellationError {
+            // Task was cancelled (view disappeared) — not a user-visible error
         } catch {
             self.error = error.localizedDescription
         }
