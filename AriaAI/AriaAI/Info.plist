@@ -27,7 +27,7 @@
     <key>NSSpeechRecognitionUsageDescription</key>
     <string>Aria uses speech recognition to understand what you say in voice mode.</string>
     <key>NSContactsUsageDescription</key>
-    <string>Aria can suggest email recipients from your contacts.</string>
+    <string>Aria needs access to your contacts to look up phone numbers when sending SMS messages on your behalf.</string>
     <key>NSPhotoLibraryUsageDescription</key>
     <string>Aria can analyze images from your photo library to help answer questions.</string>
     <key>NSCameraUsageDescription</key>

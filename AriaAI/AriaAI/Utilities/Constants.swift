@@ -77,8 +77,52 @@ enum Constants {
         • Creating personalized morning briefings
         • Analyzing images, documents, and screenshots
         • Helping with tasks, planning, and decision-making
+        • Sending SMS messages to contacts via the user's phone
+
+        SMS instructions: When the user asks to send a text or SMS, use get_contacts to look up the recipient's phone number, then call send_sms with the number and message. If you notice from email context that an SMS follow-up would help (e.g. an urgent thread, a meeting reminder), proactively offer to send one and ask the user first. Never send an SMS without the user's confirmation — the send_sms tool will show them a confirmation dialog automatically.
 
         Always be concise yet thorough. Match the user's tone—professional when needed, casual when appropriate. When helping with emails, be direct and provide ready-to-use drafts. You have access to the user's inbox context when provided.
         """
+    }
+
+    enum SMS {
+        static let tools: [[String: Any]] = [
+            [
+                "name": "get_contacts",
+                "description": "Search the user's phone contacts by name to find a phone number. Only call this when you need a phone number to send an SMS.",
+                "input_schema": [
+                    "type": "object",
+                    "properties": [
+                        "search": [
+                            "type": "string",
+                            "description": "Name or partial name to search for"
+                        ]
+                    ],
+                    "required": ["search"]
+                ] as [String: Any]
+            ],
+            [
+                "name": "send_sms",
+                "description": "Request to send an SMS. The user will see a confirmation dialog before it is sent. Use get_contacts first if you need the phone number.",
+                "input_schema": [
+                    "type": "object",
+                    "properties": [
+                        "phone_number": [
+                            "type": "string",
+                            "description": "The recipient's phone number"
+                        ],
+                        "contact_name": [
+                            "type": "string",
+                            "description": "The recipient's display name (for the confirmation dialog)"
+                        ],
+                        "message": [
+                            "type": "string",
+                            "description": "The SMS message text"
+                        ]
+                    ],
+                    "required": ["phone_number", "message"]
+                ] as [String: Any]
+            ]
+        ]
     }
 }

@@ -61,13 +61,27 @@ struct TokenUsageSnapshot: Codable {
 
 struct AnthropicStreamEvent: Decodable {
     let type: String
+    let index: Int?
     let delta: Delta?
     let usage: UsageResponse?
     let message: MessageStart?
+    let contentBlock: ContentBlockInfo?
 
     struct Delta: Decodable {
         let type: String?
         let text: String?
+        let partialJson: String?
+        let stopReason: String?
+        enum CodingKeys: String, CodingKey {
+            case type, text
+            case partialJson = "partial_json"
+            case stopReason  = "stop_reason"
+        }
+    }
+    struct ContentBlockInfo: Decodable {
+        let type: String
+        let id: String?
+        let name: String?
     }
     struct UsageResponse: Decodable {
         let inputTokens: Int?
@@ -83,5 +97,9 @@ struct AnthropicStreamEvent: Decodable {
     }
     struct MessageStart: Decodable {
         let usage: UsageResponse?
+    }
+    enum CodingKeys: String, CodingKey {
+        case type, index, delta, usage, message
+        case contentBlock = "content_block"
     }
 }

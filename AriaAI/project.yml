@@ -46,6 +46,8 @@ targets:
       - sdk: AVFoundation.framework
       - sdk: Speech.framework
       - sdk: UserNotifications.framework
+      - sdk: Contacts.framework
+      - sdk: MessageUI.framework
     info:
       path: AriaAI/Info.plist
     entitlements:

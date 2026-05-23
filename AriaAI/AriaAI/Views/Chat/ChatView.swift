@@ -20,6 +20,9 @@ struct ChatView: View {
             }
         }
         .sheet(isPresented: $showSessions) { sessionSheet }
+        .sheet(item: $vm.pendingSMSConfirmation) { sms in
+            SMSConfirmationSheet(sms: sms, vm: vm)
+        }
         .onChange(of: vm.isVoiceActive) { _, active in
             if active { inputFocused = false }
         }
@@ -494,5 +497,120 @@ extension View {
             if shouldShow { content() }
             self
         }
+    }
+}
+
+// MARK: - SMS Confirmation Sheet
+
+struct SMSConfirmationSheet: View {
+    let sms: PendingSMS
+    @ObservedObject var vm: ChatViewModel
+
+    var recipientLabel: String {
+        if let name = sms.contactName, !name.isEmpty {
+            return "\(name)  ·  \(sms.phoneNumber)"
+        }
+        return sms.phoneNumber
+    }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            // Handle
+            Capsule()
+                .fill(Color.white.opacity(0.2))
+                .frame(width: 36, height: 4)
+                .padding(.top, Theme.Spacing.md)
+
+            // Icon + title
+            VStack(spacing: Theme.Spacing.xs) {
+                ZStack {
+                    Circle()
+                        .fill(Theme.Colors.success.opacity(0.15))
+                        .frame(width: 64, height: 64)
+                    Image(systemName: "message.fill")
+                        .font(.system(size: 26, weight: .semibold))
+                        .foregroundStyle(Theme.Colors.success)
+                }
+                Text("Send SMS?")
+                    .font(Theme.Typography.title3(.semibold))
+                    .foregroundStyle(Theme.Colors.textPrimary)
+            }
+            .padding(.top, Theme.Spacing.lg)
+            .padding(.bottom, Theme.Spacing.md)
+
+            VStack(spacing: Theme.Spacing.sm) {
+                // Recipient
+                infoRow(icon: "person.fill", label: "To", value: recipientLabel)
+                // Message
+                VStack(alignment: .leading, spacing: 6) {
+                    Label("Message", systemImage: "text.bubble.fill")
+                        .font(Theme.Typography.caption(.semibold))
+                        .foregroundStyle(Theme.Colors.textTertiary)
+                    Text(sms.message)
+                        .font(Theme.Typography.body())
+                        .foregroundStyle(Theme.Colors.textPrimary)
+                        .lineLimit(6)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .padding(Theme.Spacing.md)
+                .background(Theme.Colors.surface.clipShape(RoundedRectangle(cornerRadius: 14)))
+            }
+            .padding(.horizontal, Theme.Spacing.md)
+
+            Spacer()
+
+            // Actions
+            VStack(spacing: Theme.Spacing.sm) {
+                Button {
+                    Task { await vm.confirmSMSSend() }
+                } label: {
+                    Label("Open SMS Composer", systemImage: "arrow.up.message.fill")
+                        .font(Theme.Typography.body(.semibold))
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(Theme.Spacing.md)
+                        .background(Theme.Colors.success)
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                }
+                .buttonStyle(.plain)
+
+                Button {
+                    vm.cancelSMSSend()
+                } label: {
+                    Text("Cancel")
+                        .font(Theme.Typography.body())
+                        .foregroundStyle(Theme.Colors.textSecondary)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, Theme.Spacing.sm)
+                }
+                .buttonStyle(.plain)
+            }
+            .padding(.horizontal, Theme.Spacing.md)
+            .padding(.bottom, Theme.Spacing.xl)
+        }
+        .background(Theme.Colors.background.ignoresSafeArea())
+        .presentationDetents([.medium])
+        .presentationDragIndicator(.hidden)
+    }
+
+    private func infoRow(icon: String, label: String, value: String) -> some View {
+        HStack(spacing: Theme.Spacing.sm) {
+            Image(systemName: icon)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(Theme.Colors.textTertiary)
+                .frame(width: 20)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(label)
+                    .font(Theme.Typography.caption(.semibold))
+                    .foregroundStyle(Theme.Colors.textTertiary)
+                Text(value)
+                    .font(Theme.Typography.subheadline(.medium))
+                    .foregroundStyle(Theme.Colors.textPrimary)
+                    .lineLimit(1)
+            }
+            Spacer()
+        }
+        .padding(Theme.Spacing.md)
+        .background(Theme.Colors.surface.clipShape(RoundedRectangle(cornerRadius: 14)))
     }
 }

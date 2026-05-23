@@ -2,6 +2,13 @@ import SwiftUI
 import UIKit
 import PhotosUI
 
+struct PendingSMS: Identifiable {
+    let id = UUID()
+    let phoneNumber: String
+    let contactName: String?
+    let message: String
+}
+
 @MainActor
 class ChatViewModel: ObservableObject {
     @Published var messages: [Message] = []
@@ -13,10 +20,12 @@ class ChatViewModel: ObservableObject {
     @Published var conversations: [ChatSession] = []
     @Published var currentSessionID = UUID()
     @Published var scrollToBottom = false
+    @Published var pendingSMSConfirmation: PendingSMS?
 
     private let appState = AppState.shared
     private var streamingMessageID: UUID?
     private var activeStreamTask: Task<Void, Never>?
+    private var smsContinuation: CheckedContinuation<Bool, Never>?
 
     init() {
         loadConversations()
@@ -68,10 +77,14 @@ class ChatViewModel: ObservableObject {
             do {
                 let stream = await AIService.shared.streamMessage(
                     messages: windowedHistory,
-                    plan: appState.plan
+                    plan: appState.plan,
+                    tools: Constants.SMS.tools
                 )
 
                 var fullText = ""
+                var collectedToolCalls: [(id: String, name: String, input: [String: Any])] = []
+                var stopReason = "end_turn"
+
                 for try await event in stream {
                     switch event {
                     case .text(let chunk):
@@ -82,14 +95,31 @@ class ChatViewModel: ObservableObject {
                         }
                         scrollToBottom = true
 
+                    case .toolCall(let id, let name, let input):
+                        collectedToolCalls.append((id: id, name: name, input: input))
+
+                    case .stopReason(let reason):
+                        stopReason = reason
+
                     case .usage(let input, let output, let cached):
                         appState.tokenTracker.record(input: input, output: output, cached: cached)
                         let snapshot = TokenUsageSnapshot(inputTokens: input, outputTokens: output, cachedInputTokens: cached)
                         if let idx = messages.firstIndex(where: { $0.id == assistantID }) {
                             messages[idx].tokensUsed = snapshot
-                            messages[idx].isStreaming = false
+                            if collectedToolCalls.isEmpty { messages[idx].isStreaming = false }
                         }
                     }
+                }
+
+                // Tool loop: execute tool calls and continue conversation
+                if !collectedToolCalls.isEmpty && stopReason == "tool_use" {
+                    try await runToolLoop(
+                        windowedHistory: windowedHistory,
+                        initialText: fullText,
+                        initialToolCalls: collectedToolCalls,
+                        assistantID: assistantID
+                    )
+                    fullText = messages.first(where: { $0.id == assistantID })?.content ?? fullText
                 }
 
                 if isVoiceActive && !fullText.isEmpty {
@@ -277,6 +307,151 @@ class ChatViewModel: ObservableObject {
         guard let first = messages.first(where: { $0.isUser }) else { return "New conversation" }
         let text = first.content.components(separatedBy: .newlines).joined(separator: " ").trimmed
         return text.count > 40 ? String(text.prefix(40)) + "…" : text
+    }
+
+    // MARK: - SMS confirmation
+
+    func confirmSMSSend() async {
+        guard let pending = pendingSMSConfirmation else { return }
+        // Keep sheet visible until composer dismisses
+        let sent = await SMSService.shared.presentSMSComposer(to: pending.phoneNumber, body: pending.message)
+        pendingSMSConfirmation = nil
+        smsContinuation?.resume(returning: sent)
+        smsContinuation = nil
+    }
+
+    func cancelSMSSend() {
+        pendingSMSConfirmation = nil
+        smsContinuation?.resume(returning: false)
+        smsContinuation = nil
+    }
+
+    // MARK: - Tool loop (private)
+
+    private func runToolLoop(
+        windowedHistory: [Message],
+        initialText: String,
+        initialToolCalls: [(id: String, name: String, input: [String: Any])],
+        assistantID: UUID
+    ) async throws {
+        var rawMessages = buildAPIMessages(from: windowedHistory)
+        var currentText = initialText
+        var pendingCalls = initialToolCalls
+
+        for _ in 0..<4 {
+            // Mark message as still processing
+            if let idx = messages.firstIndex(where: { $0.id == assistantID }) {
+                messages[idx].isStreaming = true
+            }
+
+            // Build assistant message (text + tool_use blocks)
+            var assistantBlocks: [[String: Any]] = []
+            if !currentText.isEmpty {
+                assistantBlocks.append(["type": "text", "text": currentText])
+            }
+            for tc in pendingCalls {
+                assistantBlocks.append(["type": "tool_use", "id": tc.id, "name": tc.name, "input": tc.input])
+            }
+            rawMessages.append(["role": "assistant", "content": assistantBlocks])
+
+            // Execute tools
+            var toolResultContent: [[String: Any]] = []
+            for tc in pendingCalls {
+                let result = await executeToolCall(name: tc.name, input: tc.input)
+                toolResultContent.append(["type": "tool_result", "tool_use_id": tc.id, "content": result])
+            }
+            rawMessages.append(["role": "user", "content": toolResultContent])
+
+            // Non-streaming follow-up
+            let (nextText, nextCalls, nextUsage) = try await AIService.shared.sendRawWithTools(
+                rawMessages: rawMessages,
+                tools: Constants.SMS.tools
+            )
+            appState.tokenTracker.record(
+                input: nextUsage.inputTokens,
+                output: nextUsage.outputTokens,
+                cached: nextUsage.cachedInputTokens
+            )
+
+            if !nextText.isEmpty {
+                if let idx = messages.firstIndex(where: { $0.id == assistantID }) {
+                    let existing = messages[idx].content
+                    messages[idx].content = existing.isEmpty ? nextText : existing + "\n\n" + nextText
+                }
+                scrollToBottom = true
+            }
+
+            if nextCalls.isEmpty {
+                if let idx = messages.firstIndex(where: { $0.id == assistantID }) {
+                    messages[idx].isStreaming = false
+                }
+                break
+            }
+            currentText = nextText
+            pendingCalls = nextCalls
+        }
+    }
+
+    private func executeToolCall(name: String, input: [String: Any]) async -> String {
+        switch name {
+        case "get_contacts":
+            let query = (input["search"] as? String) ?? ""
+            guard !query.isEmpty else { return "Error: search query is required" }
+            do {
+                let contacts = try await SMSService.shared.searchContacts(query: query)
+                guard !contacts.isEmpty else { return "No contacts found matching '\(query)'" }
+                return contacts.prefix(8).map { c in
+                    let phones = c.phoneNumbers.prefix(2).joined(separator: " / ")
+                    return "\(c.name): \(phones)"
+                }.joined(separator: "\n")
+            } catch {
+                return "Error: \(error.localizedDescription)"
+            }
+
+        case "send_sms":
+            let phoneNumber = (input["phone_number"] as? String) ?? ""
+            let contactName = input["contact_name"] as? String
+            let message     = (input["message"] as? String) ?? ""
+            guard !phoneNumber.isEmpty, !message.isEmpty else {
+                return "Error: phone_number and message are required"
+            }
+            let confirmed = await waitForSMSConfirmation(
+                PendingSMS(phoneNumber: phoneNumber, contactName: contactName, message: message)
+            )
+            if confirmed {
+                return "SMS opened in composer for \(contactName ?? phoneNumber). User can review and send."
+            } else {
+                return "User declined to send the SMS."
+            }
+
+        default:
+            return "Unknown tool: \(name)"
+        }
+    }
+
+    private func waitForSMSConfirmation(_ sms: PendingSMS) async -> Bool {
+        return await withCheckedContinuation { continuation in
+            self.smsContinuation = continuation
+            self.pendingSMSConfirmation = sms
+        }
+    }
+
+    private func buildAPIMessages(from messages: [Message]) -> [[String: Any]] {
+        messages.compactMap { msg -> [String: Any]? in
+            guard msg.role != .system else { return nil }
+            var contentBlocks: [[String: Any]] = []
+            if msg.isUser && msg.hasImages {
+                for img in msg.images where !img.base64Data.isEmpty {
+                    contentBlocks.append([
+                        "type": "image",
+                        "source": ["type": "base64", "media_type": img.mediaType, "data": img.base64Data]
+                    ])
+                }
+            }
+            if !msg.content.isEmpty { contentBlocks.append(["type": "text", "text": msg.content]) }
+            guard !contentBlocks.isEmpty else { return nil }
+            return ["role": msg.role.rawValue, "content": contentBlocks]
+        }
     }
 
     func cancelStreaming() {
