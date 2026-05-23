@@ -4,6 +4,7 @@ struct OnboardingView: View {
     @EnvironmentObject private var appState: AppState
     @EnvironmentObject private var auth: AuthService
     @State private var currentPage = 0
+    @State private var isGoingForward = true
     @State private var name = ""
     @FocusState private var nameFocused: Bool
 
@@ -55,15 +56,15 @@ struct OnboardingView: View {
                 if currentPage < pages.count {
                     featurePage(pages[currentPage])
                         .transition(.asymmetric(
-                            insertion: .move(edge: .trailing).combined(with: .opacity),
-                            removal: .move(edge: .leading).combined(with: .opacity)
+                            insertion: .move(edge: isGoingForward ? .trailing : .leading).combined(with: .opacity),
+                            removal: .move(edge: isGoingForward ? .leading : .trailing).combined(with: .opacity)
                         ))
                         .id(currentPage)
                 } else {
                     nameEntryPage
                         .transition(.asymmetric(
-                            insertion: .move(edge: .trailing).combined(with: .opacity),
-                            removal: .move(edge: .leading).combined(with: .opacity)
+                            insertion: .move(edge: isGoingForward ? .trailing : .leading).combined(with: .opacity),
+                            removal: .move(edge: isGoingForward ? .leading : .trailing).combined(with: .opacity)
                         ))
                         .id("name")
                 }
@@ -74,6 +75,10 @@ struct OnboardingView: View {
                 VStack(spacing: Theme.Spacing.sm) {
                     if currentPage < pages.count {
                         Button {
+                            let gen = UIImpactFeedbackGenerator(style: .medium)
+                            gen.prepare()
+                            gen.impactOccurred()
+                            isGoingForward = true
                             withAnimation(Theme.Animation.spring) { currentPage += 1 }
                         } label: {
                             HStack {
@@ -93,6 +98,7 @@ struct OnboardingView: View {
                             )
                             .clipShape(RoundedRectangle(cornerRadius: Theme.Glass.cornerRadiusSm))
                             .shadow(color: pages[currentPage].gradient.first?.opacity(0.4) ?? .clear, radius: 12, x: 0, y: 6)
+                            .animation(Theme.Animation.smooth, value: currentPage)
                         }
                         .buttonStyle(.plain)
                         .padding(.horizontal, Theme.Spacing.xl)
@@ -100,6 +106,7 @@ struct OnboardingView: View {
 
                     if currentPage > 0 {
                         Button("Back") {
+                            isGoingForward = false
                             withAnimation(Theme.Animation.spring) { currentPage -= 1 }
                         }
                         .font(Theme.Typography.subheadline(.medium))
