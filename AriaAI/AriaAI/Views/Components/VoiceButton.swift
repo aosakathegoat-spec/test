@@ -52,7 +52,10 @@ struct VoiceButton: View {
         .onChange(of: isListening) { _, listening in
             if listening {
                 pulse = false
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { pulse = true }
+                Task { @MainActor in
+                    try? await Task.sleep(for: .milliseconds(50))
+                    pulse = true
+                }
             }
         }
     }
