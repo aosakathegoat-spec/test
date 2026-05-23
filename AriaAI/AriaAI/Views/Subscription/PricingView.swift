@@ -3,7 +3,7 @@ import StoreKit
 
 struct PricingView: View {
     @EnvironmentObject private var appState: AppState
-    @StateObject private var purchaseService = PurchaseService.shared
+    @ObservedObject private var purchaseService = PurchaseService.shared
     @Environment(\.dismiss) private var dismiss
     @State private var selectedPlan: SubscriptionPlan = .pro
     @State private var isPurchasing = false

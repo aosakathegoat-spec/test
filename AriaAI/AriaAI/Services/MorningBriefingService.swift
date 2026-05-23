@@ -55,7 +55,13 @@ class MorningBriefingService {
     func scheduleDailyBriefing(hour: Int, minute: Int) {
         let center = UNUserNotificationCenter.current()
 
+        UserDefaults.standard.set(hour,   forKey: Constants.UserDefaultsKeys.briefingHour)
+        UserDefaults.standard.set(minute, forKey: Constants.UserDefaultsKeys.briefingMinute)
+
         center.requestAuthorization(options: [.alert, .sound]) { granted, _ in
+            DispatchQueue.main.async {
+                UserDefaults.standard.set(granted, forKey: Constants.UserDefaultsKeys.morningBriefing)
+            }
             guard granted else { return }
 
             center.removePendingNotificationRequests(withIdentifiers: ["morning_briefing"])
@@ -78,10 +84,6 @@ class MorningBriefingService {
             )
             center.add(request)
         }
-
-        UserDefaults.standard.set(true,   forKey: Constants.UserDefaultsKeys.morningBriefing)
-        UserDefaults.standard.set(hour,   forKey: Constants.UserDefaultsKeys.briefingHour)
-        UserDefaults.standard.set(minute, forKey: Constants.UserDefaultsKeys.briefingMinute)
     }
 
     func cancelDailyBriefing() {
