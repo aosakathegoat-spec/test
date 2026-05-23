@@ -9,8 +9,6 @@ class ChatViewModel: ObservableObject {
     @Published var isStreaming = false
     @Published var error: String?
     @Published var selectedImages: [UIImage] = []
-    @Published var isPickingImages = false
-    @Published var showVoiceMode = false
     @Published var isVoiceActive = false
     @Published var conversations: [ChatSession] = []
     @Published var currentSessionID = UUID()

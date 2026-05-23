@@ -2,9 +2,6 @@ import Foundation
 
 enum Constants {
     enum API {
-        // Key is now managed by AuthService / KeychainService
-        // Use AuthService.shared.apiKey at call sites
-        static var key: String { AuthService.shared.apiKey }
         static let messagesURL = "https://api.anthropic.com/v1/messages"
         static let model = "claude-haiku-4-5"
         static let version = "2023-06-01"
@@ -66,8 +63,6 @@ enum Constants {
         static let briefingHour    = "briefing_hour"
         static let briefingMinute  = "briefing_minute"
         static let selectedVoice   = "selected_voice"
-        static let gmailToken      = "gmail_access_token"
-        static let gmailRefresh    = "gmail_refresh_token"
         static let gmailEmail      = "gmail_email"
         static let userName        = "user_name"
         static let chatSessions    = "chat_sessions"

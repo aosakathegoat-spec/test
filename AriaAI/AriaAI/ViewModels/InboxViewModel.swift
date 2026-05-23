@@ -11,8 +11,6 @@ class InboxViewModel: ObservableObject {
     @Published var showCompose = false
     @Published var draftEmail = DraftEmail()
     @Published var isSending = false
-    @Published var sendSuccess = false
-    @Published var aiDraftSuggestion = ""
     @Published var isGeneratingDraft = false
 
     private let emailService = EmailService.shared
