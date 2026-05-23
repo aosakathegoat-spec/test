@@ -123,6 +123,7 @@ struct ComposeEmailView: View {
                         composeField(label: "Cc", text: $vm.draftEmail.cc, keyboard: .emailAddress)
                         Divider().opacity(0.2)
                         composeField(label: "Subject", text: $vm.draftEmail.subject, keyboard: .default)
+
                         Divider().opacity(0.2)
 
                         // Body
@@ -182,6 +183,7 @@ struct ComposeEmailView: View {
                     }
                     .padding(Theme.Spacing.md)
                 }
+                .scrollDismissesKeyboard(.interactively)
             }
             .navigationTitle("New Email")
             .navigationBarTitleDisplayMode(.inline)

@@ -24,6 +24,14 @@ struct InboxView: View {
         .sheet(isPresented: $showConnectSheet) {
             connectGmailSheet
         }
+        .alert("Error", isPresented: Binding(
+            get: { vm.error != nil && !vm.showCompose },
+            set: { if !$0 { vm.error = nil } }
+        )) {
+            Button("OK") { vm.error = nil }
+        } message: {
+            Text(vm.error ?? "")
+        }
         .task {
             if appState.emailService.isAuthenticated && appState.plan.canReadEmails {
                 await vm.loadEmails()

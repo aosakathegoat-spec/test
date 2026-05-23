@@ -73,6 +73,12 @@ struct MainTabView: View {
             .animation(.easeOut(duration: 0.18), value: selectedTab)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .ignoresSafeArea(edges: .bottom)
+            .onChange(of: selectedTab) { _, _ in
+                UIApplication.shared.sendAction(
+                    #selector(UIResponder.resignFirstResponder),
+                    to: nil, from: nil, for: nil
+                )
+            }
 
             // Glass tab bar
             tabBar
