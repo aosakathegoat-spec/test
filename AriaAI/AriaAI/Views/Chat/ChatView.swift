@@ -354,7 +354,7 @@ struct ChatView: View {
                             .frame(width: 60, height: 60)
                             .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
 
-                        Button { vm.removeImage(at: i) } label: {
+                        Button { withAnimation(Theme.Animation.snappy) { vm.removeImage(at: i) } } label: {
                             Image(systemName: "xmark.circle.fill")
                                 .font(.system(size: 16))
                                 .foregroundStyle(.white)
@@ -363,6 +363,7 @@ struct ChatView: View {
                         .buttonStyle(.plain)
                         .offset(x: 6, y: -6)
                     }
+                    .transition(.scale(scale: 0.7).combined(with: .opacity))
                 }
             }
             .padding(.horizontal, Theme.Spacing.md)

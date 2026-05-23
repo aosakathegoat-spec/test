@@ -229,7 +229,11 @@ class ChatViewModel: ObservableObject {
         conversations.removeAll { $0.id == session.id }
         storeSessions()
         if session.id == currentSessionID {
-            newConversation()
+            if isStreaming { cancelStreaming() }
+            messages = []
+            currentSessionID = UUID()
+            UserDefaults.standard.removeObject(forKey: Constants.UserDefaultsKeys.currentSession)
+            loadWelcomeMessage()
         }
     }
 
