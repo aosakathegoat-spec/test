@@ -51,7 +51,7 @@ enum SubscriptionPlan: String, Codable, CaseIterable {
 
     var tokenLimitDisplay: String {
         switch self {
-        case .free:  return "10K tokens/day"
+        case .free:  return "3K tokens/day"
         case .core:  return "60K tokens/day"
         case .pro:   return "200K tokens/day"
         case .ultra: return "700K tokens/day"
@@ -77,7 +77,7 @@ enum SubscriptionPlan: String, Codable, CaseIterable {
                 .init(icon: "speaker.wave.2", title: "Voice Mode", included: false),
                 .init(icon: "photo", title: "Image Analysis",     included: false),
                 .init(icon: "sun.horizon", title: "Morning Briefing", included: false),
-                .init(icon: "arrow.clockwise", title: "10K tokens/day", included: true),
+                .init(icon: "arrow.clockwise", title: "3K tokens/day", included: true),
             ]
         case .core:
             return [

@@ -28,10 +28,14 @@ enum Constants {
 
     // Daily token limits — reset every day at 8:00 AM PST
     enum TokenLimits {
-        static let free:  Int =  10_000   // $0       — loss leader
+        static let free:  Int =   3_000   // $0       — loss leader
         static let core:  Int =  60_000   // $9.99/mo — ~$5.37 net profit
         static let pro:   Int = 200_000   // $22.99/mo — ~$10.69 net profit
         static let ultra: Int = 700_000   // $44.99/mo — ~$12.59 net profit
+    }
+
+    enum Chat {
+        static let memoryWindow = 9  // messages of history sent to the API
     }
 
     enum ResetSchedule {

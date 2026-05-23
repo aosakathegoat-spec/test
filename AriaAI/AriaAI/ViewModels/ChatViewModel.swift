@@ -62,9 +62,12 @@ class ChatViewModel: ObservableObject {
         error = nil
 
         do {
+            // Build context window: exclude the streaming placeholder, then take last N messages
+            let history = messages.filter { !$0.isStreaming && $0.id != assistantID }
+            let windowedHistory = Array(history.suffix(Constants.Chat.memoryWindow))
+
             let stream = await AIService.shared.streamMessage(
-                messages: messages.filter { !$0.isStreaming && $0.role != .assistant || $0.id == assistantID ? false : true }
-                    .filter { $0.id != assistantID },
+                messages: windowedHistory,
                 images: images,
                 plan: appState.plan
             )
