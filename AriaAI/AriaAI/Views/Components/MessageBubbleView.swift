@@ -168,10 +168,16 @@ struct BubbleShape: Shape {
     let isUser: Bool
     func path(in rect: CGRect) -> Path {
         let r: CGFloat = 16
+        let tail: CGFloat = 4
         var path = Path()
         path.addRoundedRect(
-            in: CGRect(x: 0, y: 0, width: rect.width, height: rect.height),
-            cornerSize: CGSize(width: r, height: r),
+            in: rect,
+            cornerRadii: RectangleCornerRadii(
+                topLeading:     r,
+                bottomLeading:  isUser ? r    : tail,
+                bottomTrailing: isUser ? tail : r,
+                topTrailing:    r
+            ),
             style: .continuous
         )
         return path
