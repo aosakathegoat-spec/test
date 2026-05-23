@@ -48,6 +48,7 @@ targets:
       - sdk: UserNotifications.framework
       - sdk: Contacts.framework
       - sdk: MessageUI.framework
+      - sdk: AppIntents.framework
     info:
       path: AriaAI/Info.plist
     entitlements:

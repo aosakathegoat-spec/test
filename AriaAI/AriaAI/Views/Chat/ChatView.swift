@@ -36,7 +36,18 @@ struct ChatView: View {
         } message: {
             Text(vm.error ?? "")
         }
-        .onAppear { inputFocused = false }
+        .onAppear {
+            inputFocused = false
+            checkPendingSiriRequest()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .siriRequestReceived)) { notification in
+            guard let request = notification.object as? String else { return }
+            UserDefaults.standard.removeObject(forKey: Constants.UserDefaultsKeys.pendingSiriRequest)
+            Task {
+                vm.inputText = request
+                await vm.sendMessage()
+            }
+        }
     }
 
     // MARK: - Nav Bar
@@ -475,6 +486,17 @@ struct ChatView: View {
     }
 
     // MARK: - Helpers
+
+    private func checkPendingSiriRequest() {
+        let key = Constants.UserDefaultsKeys.pendingSiriRequest
+        guard let request = UserDefaults.standard.string(forKey: key), !request.isEmpty else { return }
+        UserDefaults.standard.removeObject(forKey: key)
+        Task {
+            vm.inputText = request
+            await vm.sendMessage()
+        }
+    }
+
     private func loadPickedImages(_ items: [PhotosPickerItem]) async {
         for item in items {
             if let data = try? await item.loadTransferable(type: Data.self),
