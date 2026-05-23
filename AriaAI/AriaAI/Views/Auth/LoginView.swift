@@ -52,6 +52,7 @@ struct LoginView: View {
                             .transition(.opacity.combined(with: .move(edge: .top)))
                     }
                 }
+                .animation(Theme.Animation.smooth, value: auth.authError != nil)
                 .opacity(buttonsOpacity)
                 .padding(.horizontal, 32)
 
@@ -221,6 +222,7 @@ struct GoogleSignInWebView: View {
         .onAppear {
             guard !didAttempt else { return }
             didAttempt = true
+            auth.authError = nil
             auth.isSigningIn = true
             Task { await startGoogleAuth() }
         }

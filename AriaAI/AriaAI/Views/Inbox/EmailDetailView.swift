@@ -186,7 +186,7 @@ struct ComposeEmailView: View {
                 }
                 .scrollDismissesKeyboard(.interactively)
             }
-            .navigationTitle("New Email")
+            .navigationTitle(vm.draftEmail.subject.hasPrefix("Re:") ? "Reply" : "New Email")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

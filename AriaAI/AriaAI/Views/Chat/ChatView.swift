@@ -132,7 +132,7 @@ struct ChatView: View {
             }
             .onChange(of: vm.messages.count) { oldCount, newCount in
                 guard newCount > oldCount else { return }
-                withAnimation { proxy.scrollTo("bottom", anchor: .bottom) }
+                withAnimation(.easeOut(duration: 0.2)) { proxy.scrollTo("bottom", anchor: .bottom) }
             }
         }
     }
@@ -214,60 +214,64 @@ struct ChatView: View {
             )
 
             // Send / stop / voice button
-            if vm.isStreaming {
-                Button { vm.cancelStreaming() } label: {
-                    ZStack {
-                        Circle()
-                            .fill(Color(hex: "#EF4444"))
-                            .frame(width: 38, height: 38)
-                        RoundedRectangle(cornerRadius: 3)
-                            .fill(.white)
-                            .frame(width: 13, height: 13)
-                    }
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Stop response")
-                .transition(.scale.combined(with: .opacity))
-            } else if vm.inputText.isEmpty && vm.selectedImages.isEmpty {
-                VoiceButton(
-                    isListening: appState.voiceService.isListening,
-                    isSpeaking: appState.voiceService.isSpeaking
-                ) {
-                    if appState.plan.canUseVoice {
-                        Task {
-                            if appState.voiceService.isListening {
-                                await vm.stopVoiceAndSend()
-                            } else {
-                                await vm.startVoiceInput()
-                            }
+            Group {
+                if vm.isStreaming {
+                    Button { vm.cancelStreaming() } label: {
+                        ZStack {
+                            Circle()
+                                .fill(Color(hex: "#EF4444"))
+                                .frame(width: 38, height: 38)
+                            RoundedRectangle(cornerRadius: 3)
+                                .fill(.white)
+                                .frame(width: 13, height: 13)
                         }
-                    } else {
-                        appState.triggerUpgradePrompt()
                     }
-                }
-                .transition(.scale.combined(with: .opacity))
-            } else {
-                Button {
-                    Task { await vm.sendMessage() }
-                } label: {
-                    ZStack {
-                        Circle()
-                            .fill(
-                                LinearGradient(
-                                    colors: [Color(hex: "#4F8EF7"), Color(hex: "#7C3AED")],
-                                    startPoint: .topLeading, endPoint: .bottomTrailing
-                                ).erased
-                            )
-                            .frame(width: 38, height: 38)
-                        Image(systemName: "arrow.up")
-                            .font(.system(size: 16, weight: .bold))
-                            .foregroundStyle(.white)
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Stop response")
+                    .transition(.scale.combined(with: .opacity))
+                } else if vm.inputText.isEmpty && vm.selectedImages.isEmpty {
+                    VoiceButton(
+                        isListening: appState.voiceService.isListening,
+                        isSpeaking: appState.voiceService.isSpeaking
+                    ) {
+                        if appState.plan.canUseVoice {
+                            Task {
+                                if appState.voiceService.isListening {
+                                    await vm.stopVoiceAndSend()
+                                } else {
+                                    await vm.startVoiceInput()
+                                }
+                            }
+                        } else {
+                            appState.triggerUpgradePrompt()
+                        }
                     }
+                    .transition(.scale.combined(with: .opacity))
+                } else {
+                    Button {
+                        Task { await vm.sendMessage() }
+                    } label: {
+                        ZStack {
+                            Circle()
+                                .fill(
+                                    LinearGradient(
+                                        colors: [Color(hex: "#4F8EF7"), Color(hex: "#7C3AED")],
+                                        startPoint: .topLeading, endPoint: .bottomTrailing
+                                    ).erased
+                                )
+                                .frame(width: 38, height: 38)
+                            Image(systemName: "arrow.up")
+                                .font(.system(size: 16, weight: .bold))
+                                .foregroundStyle(.white)
+                        }
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Send message")
+                    .transition(.scale.combined(with: .opacity))
                 }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Send message")
-                .transition(.scale.combined(with: .opacity))
             }
+            .animation(.spring(response: 0.3, dampingFraction: 0.7), value: vm.isStreaming)
+            .animation(.spring(response: 0.3, dampingFraction: 0.7), value: vm.inputText.isEmpty && vm.selectedImages.isEmpty)
         }
         .padding(.horizontal, Theme.Spacing.md)
         .padding(.vertical, Theme.Spacing.sm)

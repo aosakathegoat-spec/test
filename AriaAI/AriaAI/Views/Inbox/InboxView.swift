@@ -3,6 +3,7 @@ import SwiftUI
 struct InboxView: View {
     @StateObject private var vm = InboxViewModel()
     @ObservedObject private var tokenTracker = TokenTracker.shared
+    @ObservedObject private var emailService = EmailService.shared
     @EnvironmentObject private var appState: AppState
     @State private var showEmailDetail: EmailMessage?
     @State private var showConnectSheet = false
@@ -32,11 +33,11 @@ struct InboxView: View {
             Text(vm.error ?? "")
         }
         .task {
-            if appState.emailService.isAuthenticated && tokenTracker.plan.canReadEmails {
+            if emailService.isAuthenticated && tokenTracker.plan.canReadEmails {
                 await vm.loadEmails()
             }
         }
-        .onChange(of: appState.emailService.isAuthenticated) { _, authenticated in
+        .onChange(of: emailService.isAuthenticated) { _, authenticated in
             if authenticated && tokenTracker.plan.canReadEmails {
                 Task { await vm.loadEmails() }
             }
@@ -50,8 +51,8 @@ struct InboxView: View {
                     Text("Inbox")
                         .font(Theme.Typography.largeTitle())
                         .foregroundStyle(Theme.Colors.textPrimary)
-                    if !appState.emailService.userEmail.isEmpty {
-                        Text(appState.emailService.userEmail)
+                    if !emailService.userEmail.isEmpty {
+                        Text(emailService.userEmail)
                             .font(Theme.Typography.caption())
                             .foregroundStyle(Theme.Colors.textSecondary)
                     }
@@ -142,7 +143,7 @@ struct InboxView: View {
 
     @ViewBuilder
     private var content: some View {
-        if !appState.emailService.isAuthenticated {
+        if !emailService.isAuthenticated {
             connectPrompt
         } else if !tokenTracker.plan.canReadEmails {
             upgradePrompt

@@ -4,6 +4,7 @@ import StoreKit
 struct PricingView: View {
     @EnvironmentObject private var appState: AppState
     @ObservedObject private var purchaseService = PurchaseService.shared
+    @ObservedObject private var tokenTracker = TokenTracker.shared
     @Environment(\.dismiss) private var dismiss
     @State private var selectedPlan: SubscriptionPlan = .pro
     @State private var isPurchasing = false
@@ -22,7 +23,7 @@ struct PricingView: View {
             }
         }
         .onAppear {
-            switch appState.plan {
+            switch tokenTracker.plan {
             case .free:  selectedPlan = .core
             case .core:  selectedPlan = .pro
             case .pro:   selectedPlan = .ultra
@@ -60,7 +61,7 @@ struct PricingView: View {
                         PlanCardView(
                             plan: plan,
                             isSelected: selectedPlan == plan,
-                            isCurrent: appState.plan == plan,
+                            isCurrent: tokenTracker.plan == plan,
                             priceString: purchaseService.priceString(for: plan)
                         ) {
                             withAnimation(Theme.Animation.spring) { selectedPlan = plan }
@@ -132,7 +133,7 @@ struct PricingView: View {
                     .multilineTextAlignment(.center)
             }
 
-            if selectedPlan == .free || selectedPlan == appState.plan {
+            if selectedPlan == .free || selectedPlan == tokenTracker.plan {
                 Button("Continue with \(selectedPlan.displayName)") {
                     dismiss()
                 }

@@ -164,6 +164,7 @@ struct OnboardingView: View {
                     if name.isEmpty && !auth.displayName.isEmpty {
                         name = auth.displayName.components(separatedBy: " ").first ?? auth.displayName
                     }
+                    nameFocused = true
                 }
                 .font(.system(size: 24, weight: .medium, design: .rounded))
                 .foregroundStyle(Theme.Colors.textPrimary)
@@ -185,7 +186,6 @@ struct OnboardingView: View {
                         )
                 )
                 .padding(.horizontal, Theme.Spacing.xl)
-                .onAppear { nameFocused = true }
 
             // Get started button
             GradientButton(

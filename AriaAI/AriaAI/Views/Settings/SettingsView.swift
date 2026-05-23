@@ -4,6 +4,7 @@ import AVFoundation
 struct SettingsView: View {
     @StateObject private var vm = SettingsViewModel()
     @ObservedObject private var tokenTracker = TokenTracker.shared
+    @ObservedObject private var emailService = EmailService.shared
     @EnvironmentObject private var appState: AppState
     @EnvironmentObject private var auth: AuthService
     @State private var showPricing = false
@@ -57,8 +58,8 @@ struct SettingsView: View {
                         .onSubmit { vm.saveUserName() }
                     HStack(spacing: 6) {
                         GlassBadge(text: tokenTracker.plan.displayName, color: tokenTracker.plan.accentColor)
-                        if !appState.emailService.userEmail.isEmpty {
-                            Text(appState.emailService.userEmail)
+                        if !emailService.userEmail.isEmpty {
+                            Text(emailService.userEmail)
                                 .font(Theme.Typography.caption())
                                 .foregroundStyle(Theme.Colors.textSecondary)
                                 .lineLimit(1)
@@ -233,7 +234,7 @@ struct SettingsView: View {
         VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
             sectionHeader("Email")
             AriaGlassCard {
-                if appState.emailService.isAuthenticated {
+                if emailService.isAuthenticated {
                     VStack(spacing: Theme.Spacing.sm) {
                         HStack {
                             Image(systemName: "checkmark.circle.fill")
@@ -242,13 +243,13 @@ struct SettingsView: View {
                                 .font(Theme.Typography.body())
                                 .foregroundStyle(Theme.Colors.textPrimary)
                             Spacer()
-                            Text(appState.emailService.userEmail)
+                            Text(emailService.userEmail)
                                 .font(Theme.Typography.caption())
                                 .foregroundStyle(Theme.Colors.textSecondary)
                                 .lineLimit(1)
                         }
                         Button("Disconnect Gmail") {
-                            appState.emailService.disconnect()
+                            emailService.disconnect()
                         }
                         .font(Theme.Typography.subheadline(.medium))
                         .foregroundStyle(Theme.Colors.error)

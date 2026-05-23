@@ -146,11 +146,17 @@ class AuthService: ObservableObject {
         UserDefaults.standard.removeObject(forKey: Constants.UserDefaultsKeys.cachedTokens)
         UserDefaults.standard.removeObject(forKey: Constants.UserDefaultsKeys.resetDate)
         UserDefaults.standard.removeObject(forKey: Constants.UserDefaultsKeys.plan)
+        UserDefaults.standard.removeObject(forKey: Constants.UserDefaultsKeys.morningBriefing)
+        UserDefaults.standard.removeObject(forKey: Constants.UserDefaultsKeys.briefingHour)
+        UserDefaults.standard.removeObject(forKey: Constants.UserDefaultsKeys.briefingMinute)
+        UserDefaults.standard.removeObject(forKey: Constants.UserDefaultsKeys.selectedVoice)
+        MorningBriefingService.shared.cancelDailyBriefing()
         isLoggedIn    = false
         hasEnteredAge = false
         provider      = nil
         displayName   = ""
         userEmail     = ""
+        authError     = nil
         // AppState/TokenTracker are singletons that don't re-init — reset
         // in-memory state so re-login with a new account shows onboarding
         // and the correct plan tier, not stale data from the previous user.
