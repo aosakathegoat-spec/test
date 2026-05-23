@@ -43,6 +43,7 @@ struct ChatView: View {
                     .clipShape(Circle())
             }
             .buttonStyle(.plain)
+            .accessibilityLabel("Show conversation history")
 
             Spacer()
 
@@ -83,6 +84,7 @@ struct ChatView: View {
                         .frame(width: 36, height: 36)
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel(vm.isVoiceActive ? "Switch to text mode" : "Switch to voice mode")
 
                 Button { vm.newConversation() } label: {
                     Image(systemName: "square.and.pencil")
@@ -94,6 +96,7 @@ struct ChatView: View {
                         .clipShape(Circle())
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel("New conversation")
             }
         }
         .padding(.horizontal, Theme.Spacing.md)

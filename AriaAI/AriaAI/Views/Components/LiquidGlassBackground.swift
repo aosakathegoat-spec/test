@@ -152,7 +152,12 @@ struct GradientButton: View {
     var fullWidth = true
 
     var body: some View {
-        Button(action: { UIImpactFeedbackGenerator(style: .medium).impactOccurred(); action() }) {
+        Button(action: {
+            let gen = UIImpactFeedbackGenerator(style: .medium)
+            gen.prepare()
+            gen.impactOccurred()
+            action()
+        }) {
             HStack(spacing: Theme.Spacing.xs) {
                 if isLoading {
                     ProgressView().progressViewStyle(.circular).tint(.white).scaleEffect(0.8)

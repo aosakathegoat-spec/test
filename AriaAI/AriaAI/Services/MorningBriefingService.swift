@@ -63,7 +63,7 @@ class MorningBriefingService: ObservableObject {
         UserDefaults.standard.set(minute, forKey: Constants.UserDefaultsKeys.briefingMinute)
 
         center.requestAuthorization(options: [.alert, .sound]) { [weak self] granted, _ in
-            DispatchQueue.main.async {
+            Task { @MainActor [weak self] in
                 UserDefaults.standard.set(granted, forKey: Constants.UserDefaultsKeys.morningBriefing)
                 self?.isScheduled = granted
             }

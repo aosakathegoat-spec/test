@@ -44,6 +44,7 @@ actor AIService {
                     if hasImages && !plan.canAnalyzeImages { throw AIError.imageNotSupported }
 
                     let request = try buildRequest(
+                        key: key,
                         messages: messages,
                         systemPrompt: systemPrompt
                     )
@@ -112,7 +113,7 @@ actor AIService {
         guard !key.isEmpty else { throw AIError.noAPIKey }
 
         let request = try buildRequest(
-            messages: messages, systemPrompt: systemPrompt, stream: false
+            key: key, messages: messages, systemPrompt: systemPrompt, stream: false
         )
         let (data, response) = try await session.data(for: request)
         guard let http = response as? HTTPURLResponse else { throw AIError.networkError("Invalid response") }
@@ -153,14 +154,15 @@ actor AIService {
     }
 
     private func buildRequest(
+        key: String,
         messages: [Message],
         systemPrompt: String,
         stream: Bool = true
     ) throws -> URLRequest {
         var urlRequest = URLRequest(url: URL(string: Constants.API.messagesURL)!)
         urlRequest.httpMethod = "POST"
-        urlRequest.setValue("application/json",        forHTTPHeaderField: "Content-Type")
-        urlRequest.setValue(AuthService.shared.apiKey, forHTTPHeaderField: "x-api-key")
+        urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        urlRequest.setValue(key,                forHTTPHeaderField: "x-api-key")
         urlRequest.setValue(Constants.API.version,    forHTTPHeaderField: "anthropic-version")
         urlRequest.setValue(Constants.API.betaHeaders, forHTTPHeaderField: "anthropic-beta")
 

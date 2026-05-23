@@ -54,7 +54,6 @@ struct SettingsView: View {
                         .font(Theme.Typography.title3(.semibold))
                         .foregroundStyle(Theme.Colors.textPrimary)
                         .onSubmit { vm.saveUserName() }
-                        .onChange(of: vm.userName) { _, _ in vm.saveUserName() }
                     HStack(spacing: 6) {
                         GlassBadge(text: vm.plan.displayName, color: vm.plan.accentColor)
                         if !appState.emailService.userEmail.isEmpty {

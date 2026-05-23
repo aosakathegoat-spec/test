@@ -122,6 +122,7 @@ struct MainTabView: View {
                 selectedTab = tab
             }
             let gen = UIImpactFeedbackGenerator(style: .soft)
+            gen.prepare()
             gen.impactOccurred()
         } label: {
             VStack(spacing: 4) {

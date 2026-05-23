@@ -75,7 +75,10 @@ class SettingsViewModel: ObservableObject {
     }
 
     func saveUserName() {
-        appState.completeOnboarding(name: userName)
+        let name = userName.trimmed
+        guard !name.isEmpty else { return }
+        appState.userName = name
+        UserDefaults.standard.set(name, forKey: Constants.UserDefaultsKeys.userName)
     }
 
     func restorePurchases() async {

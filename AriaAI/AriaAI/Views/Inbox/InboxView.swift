@@ -54,6 +54,7 @@ struct InboxView: View {
                 HStack(spacing: Theme.Spacing.xs) {
                     if vm.unreadCount > 0 {
                         GlassBadge(text: "\(vm.unreadCount) unread", color: Theme.Colors.primary)
+                            .transition(.scale(scale: 0.75).combined(with: .opacity))
                     }
                     Button {
                         Task { await vm.loadEmails() }
@@ -77,6 +78,7 @@ struct InboxView: View {
                     }
                     .buttonStyle(.plain)
                     .disabled(vm.isLoading)
+                    .accessibilityLabel("Refresh emails")
 
                     Button {
                         vm.draftEmail = DraftEmail()
@@ -91,7 +93,9 @@ struct InboxView: View {
                             .clipShape(Circle())
                     }
                     .buttonStyle(.plain)
+                    .accessibilityLabel("Compose new email")
                 }
+                .animation(.spring(response: 0.3, dampingFraction: 0.7), value: vm.unreadCount)
             }
             .padding(.horizontal, Theme.Spacing.md)
             .padding(.top, Theme.Spacing.xs)
@@ -152,7 +156,9 @@ struct InboxView: View {
                     VStack(spacing: 0) {
                         EmailRowView(email: email)
                             .onTapGesture {
-                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                let gen = UIImpactFeedbackGenerator(style: .light)
+                                gen.prepare()
+                                gen.impactOccurred()
                                 vm.markAsRead(email)
                                 showEmailDetail = email
                             }
