@@ -52,9 +52,9 @@ enum SubscriptionPlan: String, Codable, CaseIterable {
     var tokenLimitDisplay: String {
         switch self {
         case .free:  return "3K tokens/day"
-        case .core:  return "60K tokens/day"
-        case .pro:   return "200K tokens/day"
-        case .ultra: return "700K tokens/day"
+        case .core:  return "160K tokens/day"
+        case .pro:   return "420K tokens/day"
+        case .ultra: return "900K tokens/day"
         }
     }
 
@@ -87,7 +87,7 @@ enum SubscriptionPlan: String, Codable, CaseIterable {
                 .init(icon: "speaker.wave.2", title: "Voice Mode", included: true),
                 .init(icon: "photo", title: "Image Analysis",     included: false),
                 .init(icon: "sun.horizon", title: "Morning Briefing", included: false),
-                .init(icon: "arrow.clockwise", title: "60K tokens/day", included: true),
+                .init(icon: "arrow.clockwise", title: "160K tokens/day", included: true),
             ]
         case .pro:
             return [
@@ -97,7 +97,7 @@ enum SubscriptionPlan: String, Codable, CaseIterable {
                 .init(icon: "speaker.wave.2", title: "Voice Mode", included: true),
                 .init(icon: "photo", title: "Image Analysis",     included: true),
                 .init(icon: "sun.horizon", title: "Morning Briefing", included: true),
-                .init(icon: "arrow.clockwise", title: "200K tokens/day", included: true),
+                .init(icon: "arrow.clockwise", title: "420K tokens/day", included: true),
             ]
         case .ultra:
             return [
@@ -107,7 +107,7 @@ enum SubscriptionPlan: String, Codable, CaseIterable {
                 .init(icon: "speaker.wave.2", title: "Voice Mode", included: true),
                 .init(icon: "photo", title: "Image Analysis",     included: true),
                 .init(icon: "sun.horizon", title: "Morning Briefing", included: true),
-                .init(icon: "arrow.clockwise", title: "700K tokens/day", included: true),
+                .init(icon: "arrow.clockwise", title: "900K tokens/day", included: true),
             ]
         }
     }
