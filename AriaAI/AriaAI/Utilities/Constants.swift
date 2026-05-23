@@ -18,20 +18,24 @@ enum Constants {
         static let ultraMonthly = "com.aria.assistant.ultra.monthly"
 
         // Pricing — after Apple 30% cut + Haiku 4.5 API costs, margins are:
-        //   Core  $19.99/mo: ~$7.19 profit  (160K/day, API ~$6.80/mo)
-        //   Pro   $39.99/mo: ~$10.14 profit (420K/day, API ~$17.85/mo)
-        //   Ultra $89.99/mo: ~$24.74 profit (900K/day, API ~$38.25/mo)
+        // Model: $1.65/MTok effective (input $1.00 + output $5.00 + cached $0.10, ~1,610 tokens/turn)
+        // Formula: daily_limit × 30 days × $1.65/MTok = API cost/mo
+        //   Core  $19.99/mo: $7.06 profit  (140K/day, API $6.93/mo,  after Apple $13.99)
+        //   Pro   $39.99/mo: $10.17 profit (360K/day, API $17.82/mo, after Apple $27.99)
+        //   Ultra $89.99/mo: $25.12 profit (765K/day, API $37.87/mo, after Apple $62.99)
         static let corePriceDisplay  = "$19.99/mo"
         static let proPriceDisplay   = "$39.99/mo"
         static let ultraPriceDisplay = "$89.99/mo"
     }
 
     // Daily token limits — reset every day at 8:00 AM PST
+    // Derived from profit targets at 100% worst-case utilisation (every user maxes out daily)
+    // Effective cost rate: $1.65/MTok of daily-limit tokens (Haiku 4.5, 9-msg history window)
     enum TokenLimits {
-        static let free:  Int =   3_000   // $0        — loss leader
-        static let core:  Int = 160_000   // $19.99/mo — ~$7.19 net profit
-        static let pro:   Int = 420_000   // $39.99/mo — ~$10.14 net profit
-        static let ultra: Int = 900_000   // $89.99/mo — ~$24.74 net profit
+        static let free:  Int =   3_000   // $0        — loss leader  (~$0.15/mo worst-case)
+        static let core:  Int = 140_000   // $19.99/mo — $7.06 profit ($6.93/mo API at 100% util)
+        static let pro:   Int = 360_000   // $39.99/mo — $10.17 profit ($17.82/mo API at 100% util)
+        static let ultra: Int = 765_000   // $89.99/mo — $25.12 profit ($37.87/mo API at 100% util)
     }
 
     enum Chat {
