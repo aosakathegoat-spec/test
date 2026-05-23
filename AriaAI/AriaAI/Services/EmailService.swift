@@ -204,7 +204,6 @@ class EmailService: ObservableObject {
         let list = try JSONDecoder().decode(GmailListResponse.self, from: listData)
         guard let refs = list.messages, !refs.isEmpty else { return [] }
 
-        // Fetch messages in parallel (capped at 20 concurrent)
         let emails = try await withThrowingTaskGroup(of: EmailMessage?.self) { group in
             for ref in refs.prefix(maxResults) {
                 group.addTask { [weak self] in

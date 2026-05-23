@@ -8,7 +8,6 @@ struct MorningBriefingView: View {
 
     var body: some View {
         ZStack {
-            LiquidGlassBackground()
             ScrollView {
                 VStack(spacing: Theme.Spacing.lg) {
                     header

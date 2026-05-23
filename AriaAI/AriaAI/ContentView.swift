@@ -54,6 +54,10 @@ struct MainTabView: View {
 
     var body: some View {
         ZStack(alignment: .bottom) {
+            // Single shared background — avoids running 4 animation loops (one per always-live tab view).
+            LiquidGlassBackground()
+                .ignoresSafeArea()
+
             // Keep all tab views alive so their ViewModels survive tab switches.
             // Opacity + allowsHitTesting replaces switch/recreate pattern.
             ZStack {

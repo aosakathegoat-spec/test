@@ -8,8 +8,6 @@ struct InboxView: View {
 
     var body: some View {
         ZStack {
-            LiquidGlassBackground()
-
             VStack(spacing: 0) {
                 navBar
                 content

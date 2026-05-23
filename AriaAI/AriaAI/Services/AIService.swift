@@ -178,7 +178,7 @@ actor AIService {
 
             // Attach stored images for any user message that has them
             if msg.isUser && msg.hasImages {
-                for img in msg.images {
+                for img in msg.images where !img.base64Data.isEmpty {
                     contentBlocks.append([
                         "type": "image",
                         "source": [

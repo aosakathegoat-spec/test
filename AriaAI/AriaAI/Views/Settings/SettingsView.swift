@@ -12,7 +12,6 @@ struct SettingsView: View {
 
     var body: some View {
         ZStack {
-            LiquidGlassBackground()
             ScrollView {
                 VStack(spacing: Theme.Spacing.md) {
                     profileSection
