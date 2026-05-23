@@ -15,6 +15,7 @@ struct SettingsView: View {
     @State private var showNotificationDeniedAlert = false
     @State private var showGmailDisconnectConfirm = false
     @ObservedObject private var briefingService = MorningBriefingService.shared
+    @FocusState private var nameFocused: Bool
 
     var body: some View {
         ZStack {
@@ -72,7 +73,11 @@ struct SettingsView: View {
                     TextField("Your name", text: $vm.userName)
                         .font(Theme.Typography.title3(.semibold))
                         .foregroundStyle(Theme.Colors.textPrimary)
+                        .focused($nameFocused)
                         .onSubmit { vm.saveUserName() }
+                        .onChange(of: nameFocused) { _, focused in
+                            if !focused { vm.saveUserName() }
+                        }
                     HStack(spacing: 6) {
                         GlassBadge(text: tokenTracker.plan.displayName, color: tokenTracker.plan.accentColor)
                         if !emailService.userEmail.isEmpty {

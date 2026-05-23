@@ -149,7 +149,12 @@ struct LoginView: View {
 
     // MARK: - Google button
     private var googleSignInButton: some View {
-        Button { showGoogleFlow = true } label: {
+        Button {
+            let gen = UIImpactFeedbackGenerator(style: .medium)
+            gen.prepare()
+            gen.impactOccurred()
+            showGoogleFlow = true
+        } label: {
             HStack(spacing: 12) {
                 // Google G
                 ZStack {

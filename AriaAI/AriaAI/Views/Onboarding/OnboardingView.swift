@@ -106,6 +106,9 @@ struct OnboardingView: View {
 
                     if currentPage > 0 {
                         Button("Back") {
+                            let gen = UIImpactFeedbackGenerator(style: .light)
+                            gen.prepare()
+                            gen.impactOccurred()
                             isGoingForward = false
                             withAnimation(Theme.Animation.spring) { currentPage -= 1 }
                         }
