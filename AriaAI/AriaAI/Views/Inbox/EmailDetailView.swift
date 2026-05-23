@@ -4,7 +4,6 @@ struct EmailDetailView: View {
     let email: EmailMessage
     @ObservedObject var vm: InboxViewModel
     @Environment(\.dismiss) private var dismiss
-    @State private var showReplyCompose = false
 
     var body: some View {
         NavigationStack {

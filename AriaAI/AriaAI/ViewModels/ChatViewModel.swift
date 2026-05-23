@@ -50,14 +50,14 @@ class ChatViewModel: ObservableObject {
         selectedImages = []
 
         // Add user message
-        var userMessage = Message(role: .user, content: text, images: images.map { AttachedImage(image: $0) })
+        let userMessage = Message(role: .user, content: text, images: images.map { AttachedImage(image: $0) })
         messages.append(userMessage)
         scrollToBottom = true
 
         // Add streaming assistant placeholder
         let assistantID = UUID()
         streamingMessageID = assistantID
-        var assistantMessage = Message(id: assistantID, role: .assistant, content: "", isStreaming: true)
+        let assistantMessage = Message(id: assistantID, role: .assistant, content: "", isStreaming: true)
         messages.append(assistantMessage)
         isStreaming = true
         error = nil

@@ -168,24 +168,12 @@ struct BubbleShape: Shape {
     let isUser: Bool
     func path(in rect: CGRect) -> Path {
         let r: CGFloat = 16
-        let tailR: CGFloat = 5
         var path = Path()
-
-        if isUser {
-            // User bubble: rounded with small bottom-right tail
-            path.addRoundedRect(
-                in: CGRect(x: 0, y: 0, width: rect.width, height: rect.height),
-                cornerSize: CGSize(width: r, height: r),
-                style: .continuous
-            )
-        } else {
-            // Assistant bubble: rounded with small bottom-left tail
-            path.addRoundedRect(
-                in: CGRect(x: 0, y: 0, width: rect.width, height: rect.height),
-                cornerSize: CGSize(width: r, height: r),
-                style: .continuous
-            )
-        }
+        path.addRoundedRect(
+            in: CGRect(x: 0, y: 0, width: rect.width, height: rect.height),
+            cornerSize: CGSize(width: r, height: r),
+            style: .continuous
+        )
         return path
     }
 }

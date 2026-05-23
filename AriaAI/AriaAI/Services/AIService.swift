@@ -231,15 +231,3 @@ enum StreamEvent {
     case text(String)
     case usage(input: Int, output: Int, cached: Int)
 }
-
-// Helper for decoding unknown JSON
-struct AnyDecodable: Decodable {
-    let value: Any
-    init(from decoder: Decoder) throws {
-        if let v = try? decoder.singleValueContainer().decode(Bool.self)   { value = v; return }
-        if let v = try? decoder.singleValueContainer().decode(Int.self)    { value = v; return }
-        if let v = try? decoder.singleValueContainer().decode(Double.self) { value = v; return }
-        if let v = try? decoder.singleValueContainer().decode(String.self) { value = v; return }
-        value = ""
-    }
-}
