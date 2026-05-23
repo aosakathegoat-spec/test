@@ -22,15 +22,6 @@ enum SubscriptionPlan: String, Codable, CaseIterable {
         }
     }
 
-    var monthlyPrice: Double {
-        switch self {
-        case .free:  return 0
-        case .core:  return 19.99
-        case .pro:   return 39.99
-        case .ultra: return 89.99
-        }
-    }
-
     var priceDisplay: String {
         switch self {
         case .free:  return "Free"

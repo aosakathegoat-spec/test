@@ -80,24 +80,4 @@ class SettingsViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Usage stats
-    var totalTokensFormatted: String    { usage.totalTokens.tokenFormatted }
-    var inputTokensFormatted: String    { usage.inputTokens.tokenFormatted }
-    var outputTokensFormatted: String   { usage.outputTokens.tokenFormatted }
-    var cachedTokensFormatted: String   { usage.cachedInputTokens.tokenFormatted }
-    var limitFormatted: String          { plan.tokenLimit.tokenFormatted }
-    var remainingFormatted: String      { tokenTracker.remainingTokens.tokenFormatted }
-    var usagePercent: Double            { tokenTracker.usagePercent }
-    var estimatedCost: String           { String(format: "$%.4f", usage.estimatedCost) }
-
-    var briefingTimeFormatted: String {
-        let h = briefingHour > 12 ? briefingHour - 12 : (briefingHour == 0 ? 12 : briefingHour)
-        let m = String(format: "%02d", briefingMinute)
-        let period = briefingHour >= 12 ? "PM" : "AM"
-        return "\(h):\(m) \(period)"
-    }
-}
-
-extension Int {
-    var nonZero: Int? { self == 0 ? nil : self }
 }

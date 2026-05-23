@@ -102,7 +102,12 @@ class VoiceService: NSObject, ObservableObject {
         }
 
         audioEngine.prepare()
-        try? audioEngine.start()
+        do {
+            try audioEngine.start()
+        } catch {
+            stopListening()
+            speechError = "Failed to start audio: \(error.localizedDescription)"
+        }
     }
 
     func stopListening() {

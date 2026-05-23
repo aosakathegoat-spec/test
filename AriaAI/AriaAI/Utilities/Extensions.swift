@@ -15,65 +15,8 @@ extension Color {
     }
 }
 
-// MARK: - Glass card modifier
-struct GlassCardModifier: ViewModifier {
-    var cornerRadius: CGFloat
-    var padding: CGFloat
-
-    func body(content: Content) -> some View {
-        content
-            .padding(padding)
-            .background {
-                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .fill(Material.ultraThinMaterial)
-                    .overlay {
-                        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                            .stroke(
-                                LinearGradient(
-                                    colors: [
-                                        .white.opacity(Theme.Glass.borderOpacity),
-                                        .white.opacity(0.04)
-                                    ],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                ),
-                                lineWidth: 1
-                            )
-                    }
-            }
-            .shadow(color: .black.opacity(Theme.Glass.shadowOpacity), radius: 12, x: 0, y: 6)
-    }
-}
-
-extension View {
-    func glassCard(cornerRadius: CGFloat = Theme.Glass.cornerRadius, padding: CGFloat = Theme.Spacing.md) -> some View {
-        modifier(GlassCardModifier(cornerRadius: cornerRadius, padding: padding))
-    }
-
-    func primaryGradientText() -> some View {
-        self.overlay(Theme.Colors.gradientPrimary).mask(self)
-    }
-
-    func haptic(_ style: UIImpactFeedbackGenerator.FeedbackStyle = .medium) -> some View {
-        self.simultaneousGesture(TapGesture().onEnded {
-            let generator = UIImpactFeedbackGenerator(style: style)
-            generator.impactOccurred()
-        })
-    }
-
-    func conditionalModifier<M: ViewModifier>(_ condition: Bool, modifier: M) -> some View {
-        Group {
-            if condition { self.modifier(modifier) } else { self }
-        }
-    }
-}
-
 // MARK: - Date helpers
 extension Date {
-    var isToday: Bool {
-        Calendar.current.isDateInToday(self)
-    }
-
     var shortTimeString: String {
         let f = DateFormatter()
         f.timeStyle = .short
@@ -134,31 +77,3 @@ extension UIImage {
     }
 }
 
-// MARK: - Shimmer effect
-struct ShimmerModifier: ViewModifier {
-    @State private var phase: CGFloat = 0
-
-    func body(content: Content) -> some View {
-        content
-            .overlay(
-                LinearGradient(
-                    colors: [
-                        .clear,
-                        .white.opacity(0.15),
-                        .clear
-                    ],
-                    startPoint: .init(x: phase - 0.3, y: 0),
-                    endPoint: .init(x: phase + 0.3, y: 0)
-                )
-            )
-            .onAppear {
-                withAnimation(.linear(duration: 1.4).repeatForever(autoreverses: false)) {
-                    phase = 1.3
-                }
-            }
-    }
-}
-
-extension View {
-    func shimmer() -> some View { modifier(ShimmerModifier()) }
-}

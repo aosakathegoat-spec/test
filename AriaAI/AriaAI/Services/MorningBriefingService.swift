@@ -1,22 +1,14 @@
 import Foundation
 import UserNotifications
-import Combine
 
 @MainActor
-class MorningBriefingService: ObservableObject {
+class MorningBriefingService {
     static let shared = MorningBriefingService()
-
-    @Published var todayBriefing: String?
-    @Published var isGenerating = false
-    @Published var lastGenerated: Date?
 
     private init() {}
 
     // MARK: - Generate Briefing
     func generateBriefing(emails: [EmailMessage]) async throws -> String {
-        isGenerating = true
-        defer { isGenerating = false }
-
         let dateStr = DateFormatter.localizedString(from: Date(), dateStyle: .full, timeStyle: .none)
         let emailSummary = buildEmailSummary(emails)
 
@@ -48,8 +40,6 @@ class MorningBriefingService: ObservableObject {
             cached: usage.cachedInputTokens
         )
 
-        todayBriefing = text
-        lastGenerated = Date()
         return text
     }
 
