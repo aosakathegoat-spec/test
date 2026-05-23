@@ -77,6 +77,7 @@ struct ChatView: View {
                 if vm.isVoiceActive {
                     SoundWaveView(isActive: voiceService.isListening || voiceService.isSpeaking)
                         .frame(width: 40)
+                        .transition(.scale(scale: 0.7).combined(with: .opacity))
                 }
 
                 Button {
@@ -86,6 +87,8 @@ struct ChatView: View {
                         .font(.system(size: 22))
                         .foregroundStyle(vm.isVoiceActive ? Theme.Colors.primary : Theme.Colors.textSecondary)
                         .frame(width: 36, height: 36)
+                        .contentTransition(.symbolEffect(.replace))
+                        .animation(Theme.Animation.snappy, value: vm.isVoiceActive)
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(vm.isVoiceActive ? "Switch to text mode" : "Switch to voice mode")
@@ -102,6 +105,7 @@ struct ChatView: View {
                 .buttonStyle(.plain)
                 .accessibilityLabel("New conversation")
             }
+            .animation(Theme.Animation.snappy, value: vm.isVoiceActive)
         }
         .padding(.horizontal, Theme.Spacing.md)
         .padding(.top, Theme.Spacing.xs)

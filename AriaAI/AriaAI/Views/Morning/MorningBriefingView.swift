@@ -192,6 +192,7 @@ struct MorningBriefingView: View {
                         HStack(spacing: 6) {
                             Image(systemName: voiceService.isSpeaking ? "stop.fill" : "play.fill")
                                 .font(.system(size: 13))
+                                .contentTransition(.symbolEffect(.replace))
                             Text(voiceService.isSpeaking ? "Stop" : "Listen")
                                 .font(Theme.Typography.subheadline(.medium))
                         }
@@ -207,6 +208,7 @@ struct MorningBriefingView: View {
                             )
                         )
                         .clipShape(Capsule())
+                        .animation(Theme.Animation.snappy, value: voiceService.isSpeaking)
                     }
                     .buttonStyle(.plain)
 

@@ -47,9 +47,10 @@ class SettingsViewModel: ObservableObject {
         AuthService.shared.apiKey = apiKeyInput.trimmed  // saves to Keychain
         apiKeySaved = true
         savedTask?.cancel()
-        savedTask = Task {
+        savedTask = Task { [weak self] in
             try? await Task.sleep(for: .seconds(2))
-            if !Task.isCancelled { self.apiKeySaved = false }
+            guard !Task.isCancelled else { return }
+            self?.apiKeySaved = false
         }
     }
 
