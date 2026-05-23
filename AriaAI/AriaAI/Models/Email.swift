@@ -27,18 +27,6 @@ struct EmailContact: Codable, Equatable {
     var initials: String    { displayName.initials }
 }
 
-struct EmailThread: Identifiable {
-    let id: String
-    var messages: [EmailMessage]
-    var subject: String
-    var participants: [EmailContact]
-    var lastDate: Date
-    var unreadCount: Int
-
-    var latestMessage: EmailMessage? { messages.last }
-    var snippet: String { latestMessage?.snippet ?? "" }
-}
-
 struct DraftEmail {
     var to: String = ""
     var cc: String = ""

@@ -286,7 +286,10 @@ struct GoogleSignInWebView: View {
             "code": code, "client_id": Constants.Gmail.clientID,
             "redirect_uri": Constants.Gmail.redirectURI, "grant_type": "authorization_code"
         ]
-        tokenReq.httpBody = params.map { "\($0.key)=\($0.value)" }.joined(separator: "&").data(using: .utf8)
+        tokenReq.httpBody = params
+            .map { "\($0.key)=\($0.value.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? $0.value)" }
+            .joined(separator: "&")
+            .data(using: .utf8)
 
         let (tokenData, _) = try await URLSession.shared.data(for: tokenReq)
         let tokenResp = try JSONDecoder().decode(GoogleTokenResponse.self, from: tokenData)
