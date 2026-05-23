@@ -52,17 +52,25 @@ struct InboxView: View {
                     Button {
                         Task { await vm.loadEmails() }
                     } label: {
-                        Image(systemName: "arrow.clockwise")
-                            .font(.system(size: 16, weight: .medium))
-                            .foregroundStyle(Theme.Colors.textSecondary)
-                            .frame(width: 36, height: 36)
-                            .background(.ultraThinMaterial)
-                            .environment(\.colorScheme, .dark)
-                            .clipShape(Circle())
-                            .rotationEffect(.degrees(vm.isLoading ? 360 : 0))
-                            .animation(vm.isLoading ? .linear(duration: 1).repeatForever(autoreverses: false) : .default, value: vm.isLoading)
+                        ZStack {
+                            if vm.isLoading {
+                                ProgressView()
+                                    .progressViewStyle(.circular)
+                                    .tint(Theme.Colors.textSecondary)
+                                    .scaleEffect(0.7)
+                            } else {
+                                Image(systemName: "arrow.clockwise")
+                                    .font(.system(size: 16, weight: .medium))
+                                    .foregroundStyle(Theme.Colors.textSecondary)
+                            }
+                        }
+                        .frame(width: 36, height: 36)
+                        .background(.ultraThinMaterial)
+                        .environment(\.colorScheme, .dark)
+                        .clipShape(Circle())
                     }
                     .buttonStyle(.plain)
+                    .disabled(vm.isLoading)
 
                     Button {
                         vm.draftEmail = DraftEmail()

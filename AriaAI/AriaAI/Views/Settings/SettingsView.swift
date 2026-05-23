@@ -8,6 +8,7 @@ struct SettingsView: View {
     @State private var showPricing = false
     @State private var showVoicePicker = false
     @State private var showSignOutConfirm = false
+    @State private var showGmailConnect = false
 
     var body: some View {
         ZStack {
@@ -29,6 +30,7 @@ struct SettingsView: View {
         }
         .sheet(isPresented: $showPricing) { PricingView() }
         .sheet(isPresented: $showVoicePicker) { voicePickerSheet }
+        .sheet(isPresented: $showGmailConnect) { gmailConnectSheet }
     }
 
     // MARK: - Profile
@@ -106,8 +108,16 @@ struct SettingsView: View {
                     settingsRow(icon: "arrow.clockwise", label: "Restore Purchases") {
                         Task { await vm.restorePurchases() }
                     }
-                    settingsRow(icon: "doc.text", label: "Privacy Policy") {}
-                    settingsRow(icon: "doc.badge.gearshape", label: "Terms of Service") {}
+                    settingsRow(icon: "doc.text", label: "Privacy Policy") {
+                        if let url = URL(string: "https://aria-assistant.app/privacy") {
+                            UIApplication.shared.open(url)
+                        }
+                    }
+                    settingsRow(icon: "doc.badge.gearshape", label: "Terms of Service") {
+                        if let url = URL(string: "https://aria-assistant.app/terms") {
+                            UIApplication.shared.open(url)
+                        }
+                    }
                 }
             }
         }
@@ -242,7 +252,9 @@ struct SettingsView: View {
                         .foregroundStyle(Theme.Colors.error)
                     }
                 } else {
-                    settingsRow(icon: "envelope", label: "Connect Gmail") {}
+                    settingsRow(icon: "envelope", label: "Connect Gmail") {
+                        showGmailConnect = true
+                    }
                 }
             }
         }
@@ -269,16 +281,28 @@ struct SettingsView: View {
                             }
                     }
                     if vm.morningBriefingEnabled {
-                        HStack {
-                            Text("Time")
-                                .font(Theme.Typography.body())
-                                .foregroundStyle(Theme.Colors.textSecondary)
-                            Spacer()
-                            Text(vm.briefingTimeFormatted)
-                                .font(Theme.Typography.body(.medium))
-                                .foregroundStyle(Theme.Colors.textPrimary)
-                        }
-                        .padding(.top, Theme.Spacing.xs)
+                        Divider().opacity(0.2)
+                        DatePicker(
+                            "Time",
+                            selection: Binding(
+                                get: {
+                                    var comps = DateComponents()
+                                    comps.hour = vm.briefingHour
+                                    comps.minute = vm.briefingMinute
+                                    return Calendar.current.date(from: comps) ?? Date()
+                                },
+                                set: { date in
+                                    let comps = Calendar.current.dateComponents([.hour, .minute], from: date)
+                                    vm.briefingHour = comps.hour ?? 7
+                                    vm.briefingMinute = comps.minute ?? 0
+                                    vm.saveMorningBriefingSettings()
+                                }
+                            ),
+                            displayedComponents: .hourAndMinute
+                        )
+                        .font(Theme.Typography.body())
+                        .foregroundStyle(Theme.Colors.textPrimary)
+                        .tint(Theme.Colors.primary)
                     }
                 }
             }
@@ -440,6 +464,54 @@ struct SettingsView: View {
         case .premium:  return Color(hex: "#FCD34D")
         case .enhanced: return Theme.Colors.primary
         default:        return Theme.Colors.textTertiary
+        }
+    }
+
+    // MARK: - Gmail Connect Sheet
+    private var gmailConnectSheet: some View {
+        NavigationStack {
+            ZStack {
+                SheetGlassBackground()
+                VStack(spacing: Theme.Spacing.lg) {
+                    Image(systemName: "envelope.fill")
+                        .font(.system(size: 64))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [Color(hex: "#DB4437"), Color(hex: "#F4B400")],
+                                startPoint: .topLeading, endPoint: .bottomTrailing
+                            )
+                        )
+                    Text("Connect Gmail")
+                        .font(Theme.Typography.title(.bold))
+                        .foregroundStyle(Theme.Colors.textPrimary)
+                    Text("Aria will request permission to read your inbox and send emails on your behalf. Your credentials are stored securely on-device.")
+                        .font(Theme.Typography.body())
+                        .foregroundStyle(Theme.Colors.textSecondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, Theme.Spacing.lg)
+                    GradientButton(
+                        title: "Authorize with Google",
+                        gradient: LinearGradient(
+                            colors: [Color(hex: "#4285F4"), Color(hex: "#0F9D58")],
+                            startPoint: .leading, endPoint: .trailing
+                        )
+                    ) {
+                        Task {
+                            try? await appState.emailService.authenticate()
+                            showGmailConnect = false
+                        }
+                    }
+                    .padding(.horizontal, Theme.Spacing.xl)
+                }
+                .padding(.top, Theme.Spacing.xxl)
+            }
+            .navigationTitle("Gmail Authorization")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { showGmailConnect = false }
+                }
+            }
         }
     }
 }

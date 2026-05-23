@@ -70,6 +70,7 @@ enum Constants {
         static let gmailRefresh    = "gmail_refresh_token"
         static let gmailEmail      = "gmail_email"
         static let userName        = "user_name"
+        static let chatSessions    = "chat_sessions"
     }
 
     enum Gmail {

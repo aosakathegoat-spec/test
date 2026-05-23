@@ -125,6 +125,7 @@ struct MorningBriefingView: View {
                         .frame(width: 60, height: 60)
                         .rotationEffect(.degrees(vm.spinAngle))
                         .onAppear {
+                            vm.spinAngle = 0
                             withAnimation(.linear(duration: 1).repeatForever(autoreverses: false)) {
                                 vm.spinAngle = 360
                             }
@@ -342,7 +343,6 @@ class MorningBriefingViewModel: ObservableObject {
 
     private var appState: AppState?
     private let briefingService = MorningBriefingService.shared
-    private let inboxVM = InboxViewModel()
 
     func setup(appState: AppState) {
         self.appState = appState

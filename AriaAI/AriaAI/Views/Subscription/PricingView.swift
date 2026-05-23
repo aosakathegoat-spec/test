@@ -20,6 +20,14 @@ struct PricingView: View {
                 mainContent
             }
         }
+        .onAppear {
+            switch appState.plan {
+            case .free:  selectedPlan = .core
+            case .core:  selectedPlan = .pro
+            case .pro:   selectedPlan = .ultra
+            case .ultra: selectedPlan = .ultra
+            }
+        }
     }
 
     private var mainContent: some View {

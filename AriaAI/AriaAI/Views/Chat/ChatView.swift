@@ -21,7 +21,6 @@ struct ChatView: View {
             }
         }
         .sheet(isPresented: $showSessions) { sessionSheet }
-        .sheet(isPresented: $appState.showUpgradePrompt) { PricingView() }
         .alert("Error", isPresented: Binding(
             get: { vm.error != nil },
             set: { if !$0 { vm.clearError() } }
@@ -196,6 +195,7 @@ struct ChatView: View {
                     .focused($inputFocused)
                     .submitLabel(.send)
                     .onSubmit {
+                        guard !vm.isStreaming else { return }
                         Task { await vm.sendMessage() }
                     }
             }
@@ -210,8 +210,21 @@ struct ChatView: View {
                     )
             )
 
-            // Send / voice button
-            if vm.inputText.isEmpty && vm.selectedImages.isEmpty {
+            // Send / stop / voice button
+            if vm.isStreaming {
+                Button { vm.cancelStreaming() } label: {
+                    ZStack {
+                        Circle()
+                            .fill(Color(hex: "#EF4444"))
+                            .frame(width: 38, height: 38)
+                        RoundedRectangle(cornerRadius: 3)
+                            .fill(.white)
+                            .frame(width: 13, height: 13)
+                    }
+                }
+                .buttonStyle(.plain)
+                .transition(.scale.combined(with: .opacity))
+            } else if vm.inputText.isEmpty && vm.selectedImages.isEmpty {
                 VoiceButton(
                     isListening: appState.voiceService.isListening,
                     isSpeaking: appState.voiceService.isSpeaking
@@ -228,34 +241,27 @@ struct ChatView: View {
                         appState.triggerUpgradePrompt()
                     }
                 }
+                .transition(.scale.combined(with: .opacity))
             } else {
                 Button {
                     Task { await vm.sendMessage() }
                 } label: {
                     ZStack {
                         Circle()
-                            .fill(vm.isStreaming
-                                ? Color(hex: "#EF4444")
-                                : LinearGradient(
+                            .fill(
+                                LinearGradient(
                                     colors: [Color(hex: "#4F8EF7"), Color(hex: "#7C3AED")],
                                     startPoint: .topLeading, endPoint: .bottomTrailing
                                 ).erased
                             )
                             .frame(width: 38, height: 38)
-
-                        if vm.isStreaming {
-                            RoundedRectangle(cornerRadius: 3)
-                                .fill(.white)
-                                .frame(width: 12, height: 12)
-                        } else {
-                            Image(systemName: "arrow.up")
-                                .font(.system(size: 16, weight: .bold))
-                                .foregroundStyle(.white)
-                        }
+                        Image(systemName: "arrow.up")
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundStyle(.white)
                     }
                 }
                 .buttonStyle(.plain)
-                .disabled(vm.isStreaming && vm.inputText.isEmpty)
+                .transition(.scale.combined(with: .opacity))
             }
         }
         .padding(.horizontal, Theme.Spacing.md)

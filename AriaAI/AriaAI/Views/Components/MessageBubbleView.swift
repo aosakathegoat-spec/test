@@ -150,12 +150,12 @@ struct MessageBubbleView: View {
 
     private func tokenDetail(_ tokens: TokenUsageSnapshot) -> some View {
         HStack(spacing: 4) {
-            Text("↑\(tokens.inputTokens)")
+            Text("↑\(tokens.inputTokens.tokenFormatted)")
                 .foregroundStyle(Color(hex: "#3B82F6"))
-            Text("↓\(tokens.outputTokens)")
+            Text("↓\(tokens.outputTokens.tokenFormatted)")
                 .foregroundStyle(Color(hex: "#8B5CF6"))
             if tokens.cachedInputTokens > 0 {
-                Text("⚡\(tokens.cachedInputTokens)")
+                Text("⚡\(tokens.cachedInputTokens.tokenFormatted)")
                     .foregroundStyle(Color(hex: "#10B981"))
             }
         }

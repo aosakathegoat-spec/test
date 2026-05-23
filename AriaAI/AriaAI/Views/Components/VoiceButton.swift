@@ -50,6 +50,12 @@ struct VoiceButton: View {
         }
         .buttonStyle(.plain)
         .onAppear { pulse = true }
+        .onChange(of: isListening) { _, listening in
+            if listening {
+                pulse = false
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { pulse = true }
+            }
+        }
     }
 
     private var buttonIcon: String {

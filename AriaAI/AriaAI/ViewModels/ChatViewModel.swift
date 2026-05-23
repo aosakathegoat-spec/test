@@ -18,6 +18,7 @@ class ChatViewModel: ObservableObject {
 
     private let appState = AppState.shared
     private var streamingMessageID: UUID?
+    private var activeStreamTask: Task<Void, Never>?
 
     init() {
         loadWelcomeMessage()
@@ -61,53 +62,57 @@ class ChatViewModel: ObservableObject {
         isStreaming = true
         error = nil
 
-        do {
-            // Build context window: exclude the streaming placeholder, then take last N messages
-            let history = messages.filter { !$0.isStreaming && $0.id != assistantID }
-            let windowedHistory = Array(history.suffix(Constants.Chat.memoryWindow))
+        let history = messages.filter { !$0.isStreaming && $0.id != assistantID }
+        let windowedHistory = Array(history.suffix(Constants.Chat.memoryWindow))
 
-            let stream = await AIService.shared.streamMessage(
-                messages: windowedHistory,
-                images: images,
-                plan: appState.plan
-            )
+        let task = Task { @MainActor [weak self] in
+            guard let self else { return }
+            do {
+                let stream = await AIService.shared.streamMessage(
+                    messages: windowedHistory,
+                    images: images,
+                    plan: appState.plan
+                )
 
-            var fullText = ""
-            for try await event in stream {
-                switch event {
-                case .text(let chunk):
-                    fullText += chunk
-                    if let idx = messages.firstIndex(where: { $0.id == assistantID }) {
-                        messages[idx].content = fullText
-                        messages[idx].isStreaming = true
+                var fullText = ""
+                for try await event in stream {
+                    switch event {
+                    case .text(let chunk):
+                        fullText += chunk
+                        if let idx = messages.firstIndex(where: { $0.id == assistantID }) {
+                            messages[idx].content = fullText
+                            messages[idx].isStreaming = true
+                        }
+                        scrollToBottom = true
+
+                    case .usage(let input, let output, let cached):
+                        appState.tokenTracker.record(input: input, output: output, cached: cached)
+                        let snapshot = TokenUsageSnapshot(inputTokens: input, outputTokens: output, cachedInputTokens: cached)
+                        if let idx = messages.firstIndex(where: { $0.id == assistantID }) {
+                            messages[idx].tokensUsed = snapshot
+                            messages[idx].isStreaming = false
+                        }
                     }
-                    scrollToBottom = true
+                }
 
-                case .usage(let input, let output, let cached):
-                    appState.tokenTracker.record(input: input, output: output, cached: cached)
-                    let snapshot = TokenUsageSnapshot(inputTokens: input, outputTokens: output, cachedInputTokens: cached)
+                if isVoiceActive && !fullText.isEmpty {
+                    appState.voiceService.speak(fullText)
+                }
+            } catch {
+                if !(error is CancellationError) {
+                    self.error = error.localizedDescription
                     if let idx = messages.firstIndex(where: { $0.id == assistantID }) {
-                        messages[idx].tokensUsed = snapshot
-                        messages[idx].isStreaming = false
+                        messages.remove(at: idx)
                     }
                 }
             }
-
-            // Speak response in voice mode
-            if isVoiceActive && !fullText.isEmpty {
-                appState.voiceService.speak(fullText)
-            }
-
-        } catch {
-            self.error = error.localizedDescription
-            if let idx = messages.firstIndex(where: { $0.id == assistantID }) {
-                messages.remove(at: idx)
-            }
+            isStreaming = false
+            streamingMessageID = nil
+            activeStreamTask = nil
+            saveCurrentSession()
         }
-
-        isStreaming = false
-        streamingMessageID = nil
-        saveCurrentSession()
+        activeStreamTask = task
+        await task.value
     }
 
     func sendVoiceMessage(_ text: String) async {
@@ -188,7 +193,7 @@ class ChatViewModel: ObservableObject {
     }
 
     private func loadConversations() {
-        guard let data = UserDefaults.standard.data(forKey: "chat_sessions"),
+        guard let data = UserDefaults.standard.data(forKey: Constants.UserDefaultsKeys.chatSessions),
               let sessions = try? JSONDecoder().decode([ChatSession].self, from: data)
         else { return }
         conversations = sessions
@@ -196,7 +201,7 @@ class ChatViewModel: ObservableObject {
 
     private func storeSessions() {
         guard let data = try? JSONEncoder().encode(conversations) else { return }
-        UserDefaults.standard.set(data, forKey: "chat_sessions")
+        UserDefaults.standard.set(data, forKey: Constants.UserDefaultsKeys.chatSessions)
     }
 
     func loadSession(_ session: ChatSession) {
@@ -211,8 +216,24 @@ class ChatViewModel: ObservableObject {
     }
 
     var sessionTitle: String {
-        let userMsgs = messages.filter { $0.isUser }
-        return userMsgs.first?.content.prefix(40).description ?? "New conversation"
+        guard let first = messages.first(where: { $0.isUser }) else { return "New conversation" }
+        let text = first.content.trimmed
+        return text.count > 40 ? String(text.prefix(40)) + "…" : text
+    }
+
+    func cancelStreaming() {
+        activeStreamTask?.cancel()
+        activeStreamTask = nil
+        if let id = streamingMessageID,
+           let idx = messages.firstIndex(where: { $0.id == id }) {
+            if messages[idx].content.isEmpty {
+                messages.remove(at: idx)
+            } else {
+                messages[idx].isStreaming = false
+            }
+        }
+        isStreaming = false
+        streamingMessageID = nil
     }
 
     func clearError() { error = nil }

@@ -29,7 +29,9 @@ class SettingsViewModel: ObservableObject {
         apiKeyInput = AuthService.shared.apiKey  // reads from Keychain
         selectedVoiceID = voiceService.selectedVoiceID
         morningBriefingEnabled = UserDefaults.standard.bool(forKey: Constants.UserDefaultsKeys.morningBriefing)
-        briefingHour = UserDefaults.standard.integer(forKey: Constants.UserDefaultsKeys.briefingHour).nonZero ?? 7
+        briefingHour = UserDefaults.standard.object(forKey: Constants.UserDefaultsKeys.briefingHour) != nil
+            ? UserDefaults.standard.integer(forKey: Constants.UserDefaultsKeys.briefingHour)
+            : 7
         briefingMinute = UserDefaults.standard.integer(forKey: Constants.UserDefaultsKeys.briefingMinute)
         userName = appState.userName
     }

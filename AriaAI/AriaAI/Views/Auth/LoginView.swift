@@ -172,6 +172,8 @@ struct LoginView: View {
         }
         .buttonStyle(.plain)
         .disabled(auth.isSigningIn)
+        .opacity(auth.isSigningIn ? 0.5 : 1.0)
+        .animation(Theme.Animation.quick, value: auth.isSigningIn)
     }
 
     // MARK: - Entrance animations

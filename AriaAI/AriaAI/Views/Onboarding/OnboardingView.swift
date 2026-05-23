@@ -119,7 +119,7 @@ struct OnboardingView: View {
                 Circle()
                     .fill(
                         RadialGradient(
-                            colors: [page.gradient.first!.opacity(0.3), .clear],
+                            colors: [(page.gradient.first ?? Theme.Colors.primary).opacity(0.3), .clear],
                             center: .center, startRadius: 0, endRadius: 80
                         )
                     )
@@ -139,7 +139,7 @@ struct OnboardingView: View {
                         .font(.system(size: 44, weight: .semibold))
                         .foregroundStyle(.white)
                 }
-                .shadow(color: page.gradient.first!.opacity(0.5), radius: 20, x: 0, y: 8)
+                .shadow(color: (page.gradient.first ?? Theme.Colors.primary).opacity(0.5), radius: 20, x: 0, y: 8)
                 .scaleEffect(isAnimating ? 1 : 0.7)
                 .animation(Theme.Animation.spring.delay(0.1), value: isAnimating)
             }

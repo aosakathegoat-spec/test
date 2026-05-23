@@ -53,7 +53,7 @@ struct TokenUsage: Codable {
     // Returns the next 8:00 AM in America/Los_Angeles (PST/PDT)
     static func nextDailyReset() -> Date {
         var cal = Calendar(identifier: .gregorian)
-        cal.timeZone = TimeZone(identifier: Constants.ResetSchedule.timezone)!
+        cal.timeZone = TimeZone(identifier: Constants.ResetSchedule.timezone) ?? .current
         let now = Date()
         var components = cal.dateComponents([.year, .month, .day], from: now)
         components.hour   = Constants.ResetSchedule.hour

@@ -11,7 +11,7 @@ enum AIError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .noAPIKey:         return "No API key set. Please add your Anthropic API key in Settings."
-        case .overLimit:        return "You've reached your monthly token limit. Upgrade your plan for more."
+        case .overLimit:        return "You've reached your daily token limit. Upgrade your plan or wait until 8 AM PST for a reset."
         case .networkError(let m): return "Network error: \(m)"
         case .decodingError(let m): return "Response error: \(m)"
         case .imageNotSupported: return "Image analysis requires a Pro or Ultra plan."
