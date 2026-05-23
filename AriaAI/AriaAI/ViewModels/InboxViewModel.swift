@@ -18,7 +18,7 @@ class InboxViewModel: ObservableObject {
 
     var filteredEmails: [EmailMessage] {
         guard !searchText.isEmpty else { return emails }
-        let q = searchText.lowercased()
+        let q = searchText.lowercased().trimmingCharacters(in: .whitespaces)
         return emails.filter {
             $0.subject.lowercased().contains(q) ||
             $0.from.displayName.lowercased().contains(q) ||

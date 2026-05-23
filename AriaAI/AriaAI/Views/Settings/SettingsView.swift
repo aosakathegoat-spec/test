@@ -13,6 +13,7 @@ struct SettingsView: View {
     @State private var showSignOutConfirm = false
     @State private var showGmailConnect = false
     @State private var showNotificationDeniedAlert = false
+    @State private var showGmailDisconnectConfirm = false
     @ObservedObject private var briefingService = MorningBriefingService.shared
 
     var body: some View {
@@ -269,10 +270,18 @@ struct SettingsView: View {
                                 .lineLimit(1)
                         }
                         Button("Disconnect Gmail") {
-                            withAnimation(Theme.Animation.smooth) { emailService.disconnect() }
+                            showGmailDisconnectConfirm = true
                         }
                         .font(Theme.Typography.subheadline(.medium))
                         .foregroundStyle(Theme.Colors.error)
+                        .confirmationDialog("Disconnect Gmail?", isPresented: $showGmailDisconnectConfirm, titleVisibility: .visible) {
+                            Button("Disconnect", role: .destructive) {
+                                withAnimation(Theme.Animation.smooth) { emailService.disconnect() }
+                            }
+                            Button("Cancel", role: .cancel) {}
+                        } message: {
+                            Text("You'll need to reconnect to access your inbox again.")
+                        }
                     }
                 } else {
                     settingsRow(icon: "envelope", label: "Connect Gmail") {

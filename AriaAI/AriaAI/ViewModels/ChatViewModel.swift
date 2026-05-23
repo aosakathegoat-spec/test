@@ -136,6 +136,10 @@ class ChatViewModel: ObservableObject {
             return
         }
         await appState.voiceService.startListening()
+        if let err = appState.voiceService.speechError {
+            error = err
+            appState.voiceService.speechError = nil
+        }
     }
 
     func stopVoiceAndSend() async {

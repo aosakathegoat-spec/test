@@ -165,5 +165,7 @@ struct MainTabView: View {
             .frame(maxWidth: .infinity)
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(tab.title)
+        .accessibilityAddTraits(selectedTab == tab ? [.isSelected] : [])
     }
 }

@@ -156,6 +156,7 @@ struct AgeEntryView: View {
             Slider(value: sliderValue, in: range, step: 1)
                 .tint(accentColor)
                 .padding(.vertical, 2)
+                .accessibilityLabel(label)
         }
         .padding(.horizontal, Theme.Spacing.md)
         .padding(.vertical, Theme.Spacing.md)

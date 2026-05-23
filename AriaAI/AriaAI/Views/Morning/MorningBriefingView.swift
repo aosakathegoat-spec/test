@@ -83,7 +83,7 @@ struct MorningBriefingView: View {
     private var briefingContent: some View {
         if !tokenTracker.plan.hasMorningBriefing {
             upgradeCard
-        } else if vm.isGenerating {
+        } else if vm.isGenerating && vm.briefing == nil {
             generatingCard
         } else if let briefing = vm.briefing {
             briefingCard(briefing)

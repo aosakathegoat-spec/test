@@ -48,7 +48,7 @@ struct MessageBubbleView: View {
 
     private var assistantBubble: some View {
         HStack(alignment: .bottom, spacing: 8) {
-            // Aria avatar
+            // Aria avatar (decorative)
             ZStack {
                 Circle()
                     .fill(
@@ -62,6 +62,7 @@ struct MessageBubbleView: View {
                     .font(.system(size: 13, weight: .bold, design: .rounded))
                     .foregroundStyle(.white)
             }
+            .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 4) {
                 ZStack(alignment: .bottomTrailing) {
@@ -94,6 +95,7 @@ struct MessageBubbleView: View {
                     Text(message.timestamp.shortTimeString)
                         .font(Theme.Typography.caption())
                         .foregroundStyle(Theme.Colors.textTertiary)
+                        .accessibilityHidden(true)
 
                     if let tokens = message.tokensUsed {
                         Button {

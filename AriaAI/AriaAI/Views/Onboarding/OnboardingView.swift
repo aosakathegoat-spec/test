@@ -171,7 +171,10 @@ struct OnboardingView: View {
                     if name.isEmpty && !auth.displayName.isEmpty {
                         name = auth.displayName.components(separatedBy: " ").first ?? auth.displayName
                     }
-                    nameFocused = true
+                    Task { @MainActor in
+                        try? await Task.sleep(for: .milliseconds(400))
+                        nameFocused = true
+                    }
                 }
                 .font(.system(size: 24, weight: .medium, design: .rounded))
                 .foregroundStyle(Theme.Colors.textPrimary)
@@ -203,6 +206,7 @@ struct OnboardingView: View {
             }
             .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
             .opacity(name.trimmingCharacters(in: .whitespaces).isEmpty ? 0.5 : 1.0)
+            .accessibilityHint(name.trimmingCharacters(in: .whitespaces).isEmpty ? "Enter your name above to continue" : "")
             .padding(.horizontal, Theme.Spacing.xl)
         }
     }

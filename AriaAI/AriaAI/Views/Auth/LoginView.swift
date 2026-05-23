@@ -142,6 +142,9 @@ struct LoginView: View {
         .frame(height: 56)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .shadow(color: .black.opacity(0.2), radius: 8, x: 0, y: 4)
+        .disabled(auth.isSigningIn)
+        .opacity(auth.isSigningIn ? 0.6 : 1.0)
+        .animation(Theme.Animation.quick, value: auth.isSigningIn)
     }
 
     // MARK: - Google button

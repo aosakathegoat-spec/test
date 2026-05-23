@@ -231,6 +231,7 @@ struct ComposeEmailView: View {
                 .keyboardType(keyboard)
                 .autocapitalization(.none)
                 .autocorrectionDisabled()
+                .textContentType(keyboard == .emailAddress ? .emailAddress : .none)
         }
         .padding(.horizontal, Theme.Spacing.md)
         .padding(.vertical, Theme.Spacing.sm)
