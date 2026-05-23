@@ -2,10 +2,14 @@ import Foundation
 import UserNotifications
 
 @MainActor
-class MorningBriefingService {
+class MorningBriefingService: ObservableObject {
     static let shared = MorningBriefingService()
 
-    private init() {}
+    @Published var isScheduled: Bool
+
+    private init() {
+        isScheduled = UserDefaults.standard.bool(forKey: Constants.UserDefaultsKeys.morningBriefing)
+    }
 
     // MARK: - Generate Briefing
     func generateBriefing(emails: [EmailMessage]) async throws -> String {
@@ -34,7 +38,7 @@ class MorningBriefingService {
             systemPrompt: systemPrompt
         )
 
-        await TokenTracker.shared.record(
+        TokenTracker.shared.record(
             input: usage.inputTokens,
             output: usage.outputTokens,
             cached: usage.cachedInputTokens
@@ -46,7 +50,7 @@ class MorningBriefingService {
     private func buildEmailSummary(_ emails: [EmailMessage]) -> String {
         guard !emails.isEmpty else { return "No new emails." }
         let recent = emails.prefix(5)
-        return recent.enumerated().map { i, email in
+        return recent.map { email in
             "- From \(email.from.displayName): \"\(email.subject)\" — \(email.snippet.prefix(80))"
         }.joined(separator: "\n")
     }
@@ -58,9 +62,10 @@ class MorningBriefingService {
         UserDefaults.standard.set(hour,   forKey: Constants.UserDefaultsKeys.briefingHour)
         UserDefaults.standard.set(minute, forKey: Constants.UserDefaultsKeys.briefingMinute)
 
-        center.requestAuthorization(options: [.alert, .sound]) { granted, _ in
+        center.requestAuthorization(options: [.alert, .sound]) { [weak self] granted, _ in
             DispatchQueue.main.async {
                 UserDefaults.standard.set(granted, forKey: Constants.UserDefaultsKeys.morningBriefing)
+                self?.isScheduled = granted
             }
             guard granted else { return }
 
@@ -90,9 +95,9 @@ class MorningBriefingService {
         UNUserNotificationCenter.current()
             .removePendingNotificationRequests(withIdentifiers: ["morning_briefing"])
         UserDefaults.standard.set(false, forKey: Constants.UserDefaultsKeys.morningBriefing)
+        isScheduled = false
     }
 
     var scheduledHour: Int   { UserDefaults.standard.integer(forKey: Constants.UserDefaultsKeys.briefingHour) }
     var scheduledMinute: Int { UserDefaults.standard.integer(forKey: Constants.UserDefaultsKeys.briefingMinute) }
-    var isScheduled: Bool    { UserDefaults.standard.bool(forKey: Constants.UserDefaultsKeys.morningBriefing) }
 }

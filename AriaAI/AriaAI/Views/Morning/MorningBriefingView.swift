@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 
 struct MorningBriefingView: View {
     @StateObject private var vm = MorningBriefingViewModel()
@@ -351,6 +352,7 @@ class MorningBriefingViewModel: ObservableObject {
 
     private var appState: AppState?
     private let briefingService = MorningBriefingService.shared
+    private var cancellables = Set<AnyCancellable>()
 
     func setup(appState: AppState) {
         self.appState = appState
@@ -359,6 +361,11 @@ class MorningBriefingViewModel: ObservableObject {
         components.hour   = briefingService.scheduledHour
         components.minute = briefingService.scheduledMinute
         scheduledTime = Calendar.current.date(from: components) ?? Date()
+
+        briefingService.$isScheduled
+            .receive(on: RunLoop.main)
+            .assign(to: \.isScheduled, on: self)
+            .store(in: &cancellables)
     }
 
     func generate() async {

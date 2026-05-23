@@ -172,7 +172,7 @@ actor AIService {
         ]
 
         var apiMessages: [[String: Any]] = []
-        for (i, msg) in messages.enumerated() {
+        for msg in messages {
             guard msg.role != .system else { continue }
             var contentBlocks: [[String: Any]] = []
 
@@ -189,7 +189,10 @@ actor AIService {
                     ])
                 }
             }
-            contentBlocks.append(["type": "text", "text": msg.content])
+            if !msg.content.isEmpty {
+                contentBlocks.append(["type": "text", "text": msg.content])
+            }
+            guard !contentBlocks.isEmpty else { continue }
 
             apiMessages.append([
                 "role": msg.role.rawValue,

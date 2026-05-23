@@ -28,7 +28,7 @@ struct SettingsView: View {
                 .padding(.bottom, Theme.Size.tabBarHeight)
             }
         }
-        .sheet(isPresented: $showPricing) { PricingView() }
+        .sheet(isPresented: $showPricing) { PricingView().environmentObject(appState) }
         .sheet(isPresented: $showVoicePicker) { voicePickerSheet }
         .sheet(isPresented: $showGmailConnect) { gmailConnectSheet }
     }

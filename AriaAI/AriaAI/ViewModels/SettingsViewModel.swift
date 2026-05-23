@@ -21,8 +21,14 @@ class SettingsViewModel: ObservableObject {
     var usage: TokenUsage { tokenTracker.usage }
     var plan:  SubscriptionPlan { tokenTracker.plan }
 
+    private var cancellables = Set<AnyCancellable>()
+
     init() {
         loadSettings()
+        MorningBriefingService.shared.$isScheduled
+            .receive(on: RunLoop.main)
+            .assign(to: \.morningBriefingEnabled, on: self)
+            .store(in: &cancellables)
     }
 
     func loadSettings() {

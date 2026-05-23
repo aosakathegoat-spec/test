@@ -16,21 +16,35 @@ extension Color {
 }
 
 // MARK: - Date helpers
-extension Date {
-    var shortTimeString: String {
+private enum DateFormatters {
+    static let shortTime: DateFormatter = {
         let f = DateFormatter()
         f.timeStyle = .short
-        return f.string(from: self)
+        return f
+    }()
+    static let monthDay: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "MMM d"
+        return f
+    }()
+    static let monthDayYear: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "MMM d, yyyy"
+        return f
+    }()
+}
+
+extension Date {
+    var shortTimeString: String {
+        DateFormatters.shortTime.string(from: self)
     }
 
     var emailDateString: String {
         let cal = Calendar.current
         if cal.isDateInToday(self) { return shortTimeString }
         if cal.isDateInYesterday(self) { return "Yesterday" }
-        let f = DateFormatter()
-        f.dateFormat = cal.component(.year, from: self) == cal.component(.year, from: Date())
-            ? "MMM d" : "MMM d, yyyy"
-        return f.string(from: self)
+        let sameYear = cal.component(.year, from: self) == cal.component(.year, from: Date())
+        return (sameYear ? DateFormatters.monthDay : DateFormatters.monthDayYear).string(from: self)
     }
 }
 
