@@ -276,6 +276,7 @@ struct SettingsView: View {
                         Spacer()
                         Toggle("", isOn: $vm.morningBriefingEnabled)
                             .tint(Theme.Colors.primary)
+                            .accessibilityLabel("Enable daily briefing")
                             .onChange(of: vm.morningBriefingEnabled) { _, _ in
                                 vm.saveMorningBriefingSettings()
                             }

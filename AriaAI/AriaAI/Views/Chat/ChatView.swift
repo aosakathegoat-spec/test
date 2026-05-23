@@ -223,6 +223,7 @@ struct ChatView: View {
                     }
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel("Stop response")
                 .transition(.scale.combined(with: .opacity))
             } else if vm.inputText.isEmpty && vm.selectedImages.isEmpty {
                 VoiceButton(
@@ -261,6 +262,7 @@ struct ChatView: View {
                     }
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel("Send message")
                 .transition(.scale.combined(with: .opacity))
             }
         }

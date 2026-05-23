@@ -262,6 +262,7 @@ struct MorningBriefingView: View {
                     Spacer()
                     Toggle("", isOn: $vm.isScheduled)
                         .tint(Theme.Colors.primary)
+                        .accessibilityLabel("Enable daily briefing schedule")
                         .onChange(of: vm.isScheduled) { _, on in
                             vm.updateSchedule(enabled: on)
                         }

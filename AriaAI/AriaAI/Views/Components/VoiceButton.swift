@@ -48,6 +48,7 @@ struct VoiceButton: View {
             }
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(isListening ? "Stop listening" : isSpeaking ? "Aria is speaking" : "Start voice input")
         .onAppear { pulse = true }
         .onChange(of: isListening) { _, listening in
             if listening {
