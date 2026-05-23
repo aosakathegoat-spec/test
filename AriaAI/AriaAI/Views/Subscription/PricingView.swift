@@ -107,12 +107,15 @@ struct PricingView: View {
                         Image(systemName: feature.included ? "checkmark.circle.fill" : "xmark.circle.fill")
                             .foregroundStyle(feature.included ? Theme.Colors.success : Theme.Colors.textTertiary)
                             .font(.system(size: 16))
+                            .animation(.easeInOut(duration: 0.2), value: feature.included)
                         Image(systemName: feature.icon)
                             .foregroundStyle(feature.included ? Theme.Colors.textPrimary : Theme.Colors.textTertiary)
                             .frame(width: 18)
+                            .animation(.easeInOut(duration: 0.2), value: feature.included)
                         Text(feature.title)
                             .font(Theme.Typography.body())
                             .foregroundStyle(feature.included ? Theme.Colors.textPrimary : Theme.Colors.textTertiary)
+                            .animation(.easeInOut(duration: 0.2), value: feature.included)
                         Spacer()
                     }
                 }

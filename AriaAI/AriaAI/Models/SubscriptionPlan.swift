@@ -130,7 +130,7 @@ enum SubscriptionPlan: String, Codable, CaseIterable {
 }
 
 struct PlanFeature: Identifiable {
-    let id = UUID()
+    var id: String { title }
     let icon: String
     let title: String
     let included: Bool
