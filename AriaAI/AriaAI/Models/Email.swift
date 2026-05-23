@@ -110,12 +110,13 @@ extension GmailMessage {
         let ccHeader = header("Cc")
         let ccContacts = ccHeader.isEmpty ? [] : ccHeader.components(separatedBy: ",").map { parseContact($0.trimmed) }
 
+        let subjectHeader = header("Subject")
         let bodyText = extractBody(payload)
 
         return EmailMessage(
             id: id,
             threadId: threadId,
-            subject: header("Subject").isEmpty ? "(No Subject)" : header("Subject"),
+            subject: subjectHeader.isEmpty ? "(No Subject)" : subjectHeader,
             from: fromContact,
             to: toContacts,
             cc: ccContacts,

@@ -6,6 +6,7 @@ class SettingsViewModel: ObservableObject {
     @Published var apiKeyInput = ""
     @Published var apiKeySaved = false
     @Published var showAPIKey = false
+    private var savedTask: Task<Void, Never>?
     @Published var selectedVoiceID = ""
     @Published var morningBriefingEnabled = false
     @Published var briefingHour = 7
@@ -45,9 +46,10 @@ class SettingsViewModel: ObservableObject {
     func saveAPIKey() {
         AuthService.shared.apiKey = apiKeyInput.trimmed  // saves to Keychain
         apiKeySaved = true
-        Task { @MainActor in
+        savedTask?.cancel()
+        savedTask = Task {
             try? await Task.sleep(for: .seconds(2))
-            apiKeySaved = false
+            if !Task.isCancelled { self.apiKeySaved = false }
         }
     }
 
