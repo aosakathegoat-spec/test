@@ -423,7 +423,7 @@ struct ChatView: View {
                                 } label: {
                                     HStack {
                                         VStack(alignment: .leading, spacing: 4) {
-                                            Text(session.title)
+                                            Text(session.displayTitle)
                                                 .font(Theme.Typography.subheadline(.medium))
                                                 .foregroundStyle(Theme.Colors.textPrimary)
                                                 .lineLimit(1)

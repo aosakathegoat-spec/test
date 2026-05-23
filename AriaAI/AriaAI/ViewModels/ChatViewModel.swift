@@ -108,6 +108,7 @@ class ChatViewModel: ObservableObject {
             streamingMessageID = nil
             activeStreamTask = nil
             saveCurrentSession()
+            generateTitleIfNeeded()
         }
         activeStreamTask = task
         await task.value
@@ -196,9 +197,11 @@ class ChatViewModel: ObservableObject {
 
     private func saveCurrentSession() {
         guard messages.count > 1 else { return }
+        let existingAITitle = conversations.first(where: { $0.id == currentSessionID })?.aiTitle
         let session = ChatSession(
             id: currentSessionID,
             title: sessionTitle,
+            aiTitle: existingAITitle,
             messages: messages,
             date: Date()
         )
@@ -207,6 +210,35 @@ class ChatViewModel: ObservableObject {
         conversations = Array(conversations.prefix(20))
         storeSessions()
         UserDefaults.standard.set(currentSessionID.uuidString, forKey: Constants.UserDefaultsKeys.currentSession)
+    }
+
+    private func generateTitleIfNeeded() {
+        let userMsgs = messages.filter { $0.isUser }
+        let aiMsgs   = messages.filter { $0.isAssistant && !$0.isStreaming }
+        guard userMsgs.count == 1, aiMsgs.count == 1 else { return }
+        guard conversations.first(where: { $0.id == currentSessionID })?.aiTitle == nil else { return }
+
+        let userText = userMsgs[0].content
+        let aiText   = aiMsgs[0].content
+        let sessionID = currentSessionID
+
+        Task {
+            let prompt = "Write a 3-5 word title for this conversation. Return only the title, no quotes or punctuation.\n\nUser: \(userText.prefix(200))\nAssistant: \(aiText.prefix(200))"
+            guard let (raw, _) = try? await AIService.shared.sendMessage(
+                messages: [Message(role: .user, content: prompt)]
+            ) else { return }
+            let title = raw
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+                .trimmingCharacters(in: CharacterSet(charactersIn: "\"'"))
+            guard !title.isEmpty else { return }
+            await MainActor.run { [weak self] in
+                guard let self else { return }
+                if let idx = self.conversations.firstIndex(where: { $0.id == sessionID }) {
+                    self.conversations[idx].aiTitle = title
+                    self.storeSessions()
+                }
+            }
+        }
     }
 
     private func loadConversations() {
@@ -268,6 +300,9 @@ class ChatViewModel: ObservableObject {
 struct ChatSession: Identifiable, Codable {
     let id: UUID
     var title: String
+    var aiTitle: String?
     var messages: [Message]
     var date: Date
+
+    var displayTitle: String { aiTitle ?? title }
 }

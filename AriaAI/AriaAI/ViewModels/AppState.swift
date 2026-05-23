@@ -2,11 +2,12 @@ import SwiftUI
 import Combine
 
 enum AppTab: Int, CaseIterable {
-    case chat, inbox, morning, settings
+    case chat, blocks, inbox, morning, settings
 
     var title: String {
         switch self {
         case .chat:    return "Chat"
+        case .blocks:  return "Blocks"
         case .inbox:   return "Inbox"
         case .morning: return "Briefing"
         case .settings:return "Settings"
@@ -15,6 +16,7 @@ enum AppTab: Int, CaseIterable {
     var icon: String {
         switch self {
         case .chat:    return "message.fill"
+        case .blocks:  return "puzzlepiece.extension.fill"
         case .inbox:   return "tray.full.fill"
         case .morning: return "sun.horizon.fill"
         case .settings:return "gearshape.fill"
