@@ -18,6 +18,7 @@ struct MorningBriefingView: View {
                     scheduleCard
                 }
                 .padding(Theme.Spacing.md)
+                .padding(.bottom, Theme.Size.tabBarHeight)
             }
         }
         .sheet(isPresented: $showScheduler) { schedulerSheet }

@@ -185,6 +185,7 @@ struct InboxView: View {
                 }
             }
             .padding(.top, Theme.Spacing.xs)
+            .padding(.bottom, Theme.Size.tabBarHeight)
         }
         .scrollDismissesKeyboard(.interactively)
         .refreshable {

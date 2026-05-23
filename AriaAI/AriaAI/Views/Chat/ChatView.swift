@@ -156,10 +156,19 @@ struct ChatView: View {
             // Voice mode bar
             if vm.isVoiceActive {
                 voiceModeBar
+                    .transition(.asymmetric(
+                        insertion: .move(edge: .bottom).combined(with: .opacity),
+                        removal: .move(edge: .bottom).combined(with: .opacity)
+                    ))
             } else {
                 textInputBar
+                    .transition(.asymmetric(
+                        insertion: .opacity,
+                        removal: .opacity
+                    ))
             }
         }
+        .animation(Theme.Animation.spring, value: vm.isVoiceActive)
         .background(.ultraThinMaterial)
         .environment(\.colorScheme, .dark)
         .overlay(alignment: .top) {
