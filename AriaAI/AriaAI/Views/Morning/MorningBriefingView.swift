@@ -4,6 +4,7 @@ import Combine
 struct MorningBriefingView: View {
     @StateObject private var vm = MorningBriefingViewModel()
     @ObservedObject private var tokenTracker = TokenTracker.shared
+    @ObservedObject private var voiceService = VoiceService.shared
     @EnvironmentObject private var appState: AppState
     @State private var showScheduler = false
 
@@ -168,16 +169,16 @@ struct MorningBriefingView: View {
                 HStack(spacing: Theme.Spacing.sm) {
                     // Play/Stop TTS
                     Button {
-                        if appState.voiceService.isSpeaking {
+                        if voiceService.isSpeaking {
                             appState.voiceService.stop()
                         } else {
                             appState.voiceService.speak(text)
                         }
                     } label: {
                         HStack(spacing: 6) {
-                            Image(systemName: appState.voiceService.isSpeaking ? "stop.fill" : "play.fill")
+                            Image(systemName: voiceService.isSpeaking ? "stop.fill" : "play.fill")
                                 .font(.system(size: 13))
-                            Text(appState.voiceService.isSpeaking ? "Stop" : "Listen")
+                            Text(voiceService.isSpeaking ? "Stop" : "Listen")
                                 .font(Theme.Typography.subheadline(.medium))
                         }
                         .foregroundStyle(.white)
@@ -185,7 +186,7 @@ struct MorningBriefingView: View {
                         .padding(.vertical, Theme.Spacing.sm)
                         .background(
                             LinearGradient(
-                                colors: appState.voiceService.isSpeaking
+                                colors: voiceService.isSpeaking
                                     ? [Color(hex: "#EF4444"), Color(hex: "#DC2626")]
                                     : [Color(hex: "#FCD34D"), Color(hex: "#F97316")],
                                 startPoint: .leading, endPoint: .trailing
@@ -371,6 +372,7 @@ class MorningBriefingViewModel: ObservableObject {
     }
 
     func generate() async {
+        guard !isGenerating else { return }
         guard let appState, TokenTracker.shared.plan.hasMorningBriefing else { return }
         spinAngle = 0
         isGenerating = true

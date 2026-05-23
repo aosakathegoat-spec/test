@@ -31,6 +31,7 @@ class InboxViewModel: ObservableObject {
     func loadEmails() async {
         guard emailService.isAuthenticated else { return }
         guard appState.plan.canReadEmails else { return }
+        guard !isLoading else { return }
         isLoading = true
         error = nil
         do {

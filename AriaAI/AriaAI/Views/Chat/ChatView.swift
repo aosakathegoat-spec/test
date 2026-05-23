@@ -3,6 +3,7 @@ import PhotosUI
 
 struct ChatView: View {
     @StateObject private var vm = ChatViewModel()
+    @ObservedObject private var voiceService = VoiceService.shared
     @EnvironmentObject private var appState: AppState
     @FocusState private var inputFocused: Bool
     @State private var showSessions = false
@@ -71,7 +72,7 @@ struct ChatView: View {
 
             HStack(spacing: Theme.Spacing.xs) {
                 if vm.isVoiceActive {
-                    SoundWaveView(isActive: appState.voiceService.isListening || appState.voiceService.isSpeaking)
+                    SoundWaveView(isActive: voiceService.isListening || voiceService.isSpeaking)
                         .frame(width: 40)
                 }
 
@@ -289,8 +290,8 @@ struct ChatView: View {
             }
 
             // Recognized text preview
-            if !appState.voiceService.recognizedText.isEmpty {
-                Text(appState.voiceService.recognizedText)
+            if !voiceService.recognizedText.isEmpty {
+                Text(voiceService.recognizedText)
                     .font(Theme.Typography.callout())
                     .foregroundStyle(Theme.Colors.textSecondary)
                     .lineLimit(2)
@@ -305,19 +306,19 @@ struct ChatView: View {
                 } label: {
                     Image(systemName: "speaker.slash.fill")
                         .font(.system(size: 20))
-                        .foregroundStyle(appState.voiceService.isSpeaking ? Theme.Colors.error : Theme.Colors.textTertiary)
+                        .foregroundStyle(voiceService.isSpeaking ? Theme.Colors.error : Theme.Colors.textTertiary)
                         .frame(width: 48, height: 48)
                         .background(.ultraThinMaterial)
                         .environment(\.colorScheme, .dark)
                         .clipShape(Circle())
                 }
                 .buttonStyle(.plain)
-                .disabled(!appState.voiceService.isSpeaking)
+                .disabled(!voiceService.isSpeaking)
 
                 // Main voice button
                 VoiceButton(
-                    isListening: appState.voiceService.isListening,
-                    isSpeaking: appState.voiceService.isSpeaking
+                    isListening: voiceService.isListening,
+                    isSpeaking: voiceService.isSpeaking
                 ) {
                     Task {
                         if appState.voiceService.isListening {

@@ -207,10 +207,18 @@ class VoiceService: NSObject, ObservableObject {
 
 extension VoiceService: AVSpeechSynthesizerDelegate {
     nonisolated func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
-        Task { @MainActor in self.isSpeaking = false }
+        // Only clear isSpeaking if no other utterance started immediately after
+        Task { @MainActor in
+            if !synthesizer.isSpeaking { self.isSpeaking = false }
+        }
     }
     nonisolated func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didCancel utterance: AVSpeechUtterance) {
-        Task { @MainActor in self.isSpeaking = false }
+        // Guard against the race where speak() stops an old utterance then starts a new
+        // one before the didCancel fires — without this, the callback would clear
+        // isSpeaking even though the new utterance is already playing.
+        Task { @MainActor in
+            if !synthesizer.isSpeaking { self.isSpeaking = false }
+        }
     }
 }
 

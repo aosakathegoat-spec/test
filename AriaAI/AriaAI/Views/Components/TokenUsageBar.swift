@@ -141,6 +141,9 @@ struct TokenUsageBar: View {
             .frame(height: 5)
         }
         .padding(.horizontal, Theme.Spacing.md)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Token usage: \(usage.totalTokens.tokenFormatted) of \(plan.tokenLimit.tokenFormatted) today")
+        .accessibilityValue("\(Int(overallPercent * 100)) percent used")
     }
 
     private var barColor: Color {
