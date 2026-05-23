@@ -87,6 +87,18 @@ struct SettingsView: View {
                                 .lineLimit(1)
                         }
                     }
+                    // Username row
+                    HStack(spacing: 4) {
+                        Image(systemName: "at")
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundStyle(Theme.Colors.textTertiary)
+                        TextField("username", text: $vm.friendsUsername)
+                            .font(Theme.Typography.caption(.medium))
+                            .foregroundStyle(Theme.Colors.textTertiary)
+                            .autocorrectionDisabled()
+                            .textInputAutocapitalization(.never)
+                            .onSubmit { vm.saveFriendsUsername() }
+                    }
                 }
                 Spacer()
             }

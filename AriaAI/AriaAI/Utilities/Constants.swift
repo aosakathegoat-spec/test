@@ -60,6 +60,7 @@ enum Constants {
         static let currentSession      = "current_chat_session"
         static let pendingSiriRequest  = "pending_siri_request"
         static let lastActiveTimestamp = "last_active_timestamp"
+        static let friendsUsername     = "friends_username"
     }
 
     enum Gmail {

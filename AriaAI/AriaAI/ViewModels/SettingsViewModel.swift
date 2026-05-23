@@ -12,6 +12,7 @@ class SettingsViewModel: ObservableObject {
     @Published var briefingHour = 7
     @Published var briefingMinute = 0
     @Published var userName = ""
+    @Published var friendsUsername = ""
 
     let appState       = AppState.shared
     let tokenTracker   = TokenTracker.shared
@@ -41,6 +42,7 @@ class SettingsViewModel: ObservableObject {
             : 7
         briefingMinute = UserDefaults.standard.integer(forKey: Constants.UserDefaultsKeys.briefingMinute)
         userName = appState.userName
+        friendsUsername = FriendsService.shared.myUsername
     }
 
     func saveAPIKey() {
@@ -82,6 +84,11 @@ class SettingsViewModel: ObservableObject {
         guard !name.isEmpty else { return }
         appState.userName = name
         UserDefaults.standard.set(name, forKey: Constants.UserDefaultsKeys.userName)
+    }
+
+    func saveFriendsUsername() {
+        FriendsService.shared.updateUsername(friendsUsername)
+        friendsUsername = FriendsService.shared.myUsername
     }
 
     func restorePurchases() async {
