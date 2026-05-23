@@ -9,6 +9,7 @@ struct PricingView: View {
     @State private var isPurchasing = false
     @State private var purchaseError: String?
     @State private var showSuccessAnimation = false
+    @State private var successEntered = false
 
     var body: some View {
         ZStack {
@@ -167,8 +168,9 @@ struct PricingView: View {
                     .font(.system(size: 60))
                     .foregroundStyle(Theme.Colors.success)
             }
-            .scaleEffect(showSuccessAnimation ? 1 : 0.5)
-            .animation(.spring(response: 0.5, dampingFraction: 0.6), value: showSuccessAnimation)
+            .scaleEffect(successEntered ? 1 : 0.5)
+            .animation(.spring(response: 0.5, dampingFraction: 0.6), value: successEntered)
+            .onAppear { successEntered = true }
 
             Text("Welcome to \(selectedPlan.displayName)!")
                 .font(Theme.Typography.title(.bold))
@@ -202,6 +204,7 @@ struct PricingView: View {
         do {
             let success = try await purchaseService.purchase(plan)
             if success {
+                successEntered = false
                 withAnimation { showSuccessAnimation = true }
             }
         } catch {

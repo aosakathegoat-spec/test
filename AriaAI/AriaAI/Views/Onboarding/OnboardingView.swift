@@ -221,8 +221,10 @@ struct OnboardingView: View {
                 title: "Get Started",
                 gradient: Theme.Colors.gradientPrimary
             ) {
-                appState.completeOnboarding(name: name)
+                appState.completeOnboarding(name: name.trimmingCharacters(in: .whitespaces))
             }
+            .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
+            .opacity(name.trimmingCharacters(in: .whitespaces).isEmpty ? 0.5 : 1.0)
             .padding(.horizontal, Theme.Spacing.xl)
         }
     }

@@ -36,7 +36,7 @@ actor AIService {
         plan: SubscriptionPlan
     ) -> AsyncThrowingStream<StreamEvent, Error> {
         AsyncThrowingStream { continuation in
-            Task {
+            let task = Task {
                 do {
                     let key = AuthService.shared.apiKey
                     guard !key.isEmpty else { throw AIError.noAPIKey }
@@ -99,6 +99,7 @@ actor AIService {
                     continuation.finish(throwing: error)
                 }
             }
+            continuation.onTermination = { _ in task.cancel() }
         }
     }
 

@@ -168,10 +168,11 @@ class ChatViewModel: ObservableObject {
     }
 
     private func loadWelcomeMessage() {
-        let name = AppState.shared.userName
+        let name = AppState.shared.userName.trimmingCharacters(in: .whitespaces)
+        let intro = "I'm Aria, your AI assistant. I can help you with emails, answer questions, analyze images, and more. What can I do for you today?"
         let greeting = Message(
             role: .assistant,
-            content: "Hi \(name)! I'm Aria, your AI assistant. I can help you with emails, answer questions, analyze images, and more. What can I do for you today?"
+            content: name.isEmpty ? "Hi! \(intro)" : "Hi \(name)! \(intro)"
         )
         messages = [greeting]
     }
