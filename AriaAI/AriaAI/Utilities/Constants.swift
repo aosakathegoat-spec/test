@@ -17,17 +17,26 @@ enum Constants {
         static let proMonthly   = "com.aria.assistant.pro.monthly"
         static let ultraMonthly = "com.aria.assistant.ultra.monthly"
 
-        // Pricing shown in UI (after Apple's cut the dev keeps ~70%)
-        static let corePriceDisplay  = "$2.99/mo"
-        static let proPriceDisplay   = "$9.99/mo"
-        static let ultraPriceDisplay = "$24.99/mo"
+        // Pricing — after Apple 30% cut + Haiku API costs, margins are:
+        //   Core  $9.99/mo:  ~$5.37 profit  (60K/day, API ~$1.62/mo)
+        //   Pro  $22.99/mo: ~$10.69 profit (200K/day, API ~$5.40/mo)
+        //   Ultra $44.99/mo: ~$12.59 profit (700K/day, API ~$18.90/mo)
+        static let corePriceDisplay  = "$9.99/mo"
+        static let proPriceDisplay   = "$22.99/mo"
+        static let ultraPriceDisplay = "$44.99/mo"
     }
 
+    // Daily token limits — reset every day at 8:00 AM PST
     enum TokenLimits {
-        static let free:  Int = 50_000
-        static let core:  Int = 500_000
-        static let pro:   Int = 2_000_000
-        static let ultra: Int = 8_000_000
+        static let free:  Int =  10_000   // $0       — loss leader
+        static let core:  Int =  60_000   // $9.99/mo — ~$5.37 net profit
+        static let pro:   Int = 200_000   // $22.99/mo — ~$10.69 net profit
+        static let ultra: Int = 700_000   // $44.99/mo — ~$12.59 net profit
+    }
+
+    enum ResetSchedule {
+        static let hour:     Int    = 8      // 8:00 AM
+        static let timezone: String = "America/Los_Angeles"  // PST/PDT
     }
 
     // Haiku pricing: input $0.80/MTok, output $1.00/MTok, cached $0.08/MTok
@@ -40,10 +49,10 @@ enum Constants {
     enum UserDefaultsKeys {
         static let apiKey          = "api_key"
         static let plan            = "subscription_plan"
-        static let inputTokens     = "monthly_input_tokens"
-        static let outputTokens    = "monthly_output_tokens"
-        static let cachedTokens    = "monthly_cached_tokens"
-        static let resetDate       = "token_reset_date"
+        static let inputTokens     = "daily_input_tokens"
+        static let outputTokens    = "daily_output_tokens"
+        static let cachedTokens    = "daily_cached_tokens"
+        static let resetDate       = "token_next_reset_date"
         static let onboardingDone  = "onboarding_complete"
         static let morningBriefing = "morning_briefing_enabled"
         static let briefingHour    = "briefing_hour"

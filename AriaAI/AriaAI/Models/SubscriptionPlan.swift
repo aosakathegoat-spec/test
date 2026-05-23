@@ -25,18 +25,18 @@ enum SubscriptionPlan: String, Codable, CaseIterable {
     var monthlyPrice: Double {
         switch self {
         case .free:  return 0
-        case .core:  return 2.99
-        case .pro:   return 9.99
-        case .ultra: return 24.99
+        case .core:  return 9.99
+        case .pro:   return 22.99
+        case .ultra: return 44.99
         }
     }
 
     var priceDisplay: String {
         switch self {
         case .free:  return "Free"
-        case .core:  return "$2.99/mo"
-        case .pro:   return "$9.99/mo"
-        case .ultra: return "$24.99/mo"
+        case .core:  return "$9.99/mo"
+        case .pro:   return "$22.99/mo"
+        case .ultra: return "$44.99/mo"
         }
     }
 
@@ -51,10 +51,10 @@ enum SubscriptionPlan: String, Codable, CaseIterable {
 
     var tokenLimitDisplay: String {
         switch self {
-        case .free:  return "50K tokens/mo"
-        case .core:  return "500K tokens/mo"
-        case .pro:   return "2M tokens/mo"
-        case .ultra: return "8M tokens/mo"
+        case .free:  return "10K tokens/day"
+        case .core:  return "60K tokens/day"
+        case .pro:   return "200K tokens/day"
+        case .ultra: return "700K tokens/day"
         }
     }
 
@@ -77,7 +77,7 @@ enum SubscriptionPlan: String, Codable, CaseIterable {
                 .init(icon: "speaker.wave.2", title: "Voice Mode", included: false),
                 .init(icon: "photo", title: "Image Analysis",     included: false),
                 .init(icon: "sun.horizon", title: "Morning Briefing", included: false),
-                .init(icon: "arrow.clockwise", title: "50K tokens/mo", included: true),
+                .init(icon: "arrow.clockwise", title: "10K tokens/day", included: true),
             ]
         case .core:
             return [
@@ -87,7 +87,7 @@ enum SubscriptionPlan: String, Codable, CaseIterable {
                 .init(icon: "speaker.wave.2", title: "Voice Mode", included: true),
                 .init(icon: "photo", title: "Image Analysis",     included: false),
                 .init(icon: "sun.horizon", title: "Morning Briefing", included: false),
-                .init(icon: "arrow.clockwise", title: "500K tokens/mo", included: true),
+                .init(icon: "arrow.clockwise", title: "60K tokens/day", included: true),
             ]
         case .pro:
             return [
@@ -97,7 +97,7 @@ enum SubscriptionPlan: String, Codable, CaseIterable {
                 .init(icon: "speaker.wave.2", title: "Voice Mode", included: true),
                 .init(icon: "photo", title: "Image Analysis",     included: true),
                 .init(icon: "sun.horizon", title: "Morning Briefing", included: true),
-                .init(icon: "arrow.clockwise", title: "2M tokens/mo", included: true),
+                .init(icon: "arrow.clockwise", title: "200K tokens/day", included: true),
             ]
         case .ultra:
             return [
@@ -107,7 +107,7 @@ enum SubscriptionPlan: String, Codable, CaseIterable {
                 .init(icon: "speaker.wave.2", title: "Voice Mode", included: true),
                 .init(icon: "photo", title: "Image Analysis",     included: true),
                 .init(icon: "sun.horizon", title: "Morning Briefing", included: true),
-                .init(icon: "arrow.clockwise", title: "8M tokens/mo",  included: true),
+                .init(icon: "arrow.clockwise", title: "700K tokens/day", included: true),
             ]
         }
     }

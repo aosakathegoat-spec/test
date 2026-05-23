@@ -29,10 +29,10 @@ struct TokenUsageBar: View {
                 // Header
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Token Usage")
+                        Text("Daily Token Usage")
                             .font(Theme.Typography.title3(.semibold))
                             .foregroundStyle(Theme.Colors.textPrimary)
-                        Text("Resets monthly")
+                        Text(usage.timeUntilReset)
                             .font(Theme.Typography.caption())
                             .foregroundStyle(Theme.Colors.textSecondary)
                     }
@@ -125,7 +125,7 @@ struct TokenUsageBar: View {
     private var compactBar: some View {
         VStack(spacing: 4) {
             HStack {
-                Text("Tokens")
+                Text("Today")
                     .font(Theme.Typography.caption())
                     .foregroundStyle(Theme.Colors.textSecondary)
                 Spacer()
@@ -169,8 +169,8 @@ struct TokenUsageBar: View {
             Image(systemName: overallPercent >= 1.0 ? "exclamationmark.circle.fill" : "exclamationmark.triangle.fill")
                 .font(.system(size: 14))
             Text(overallPercent >= 1.0
-                ? "Token limit reached. Upgrade to continue."
-                : "Approaching limit — \(usage.remainingTokens(limit: plan.tokenLimit).tokenFormatted) tokens remaining.")
+                ? "Daily limit reached. \(usage.timeUntilReset) or upgrade for more."
+                : "Approaching today's limit — \(usage.remainingTokens(limit: plan.tokenLimit).tokenFormatted) tokens left.")
                 .font(Theme.Typography.footnote())
         }
         .foregroundStyle(overallPercent >= 1.0 ? Theme.Colors.error : Theme.Colors.warning)

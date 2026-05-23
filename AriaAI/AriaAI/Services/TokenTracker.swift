@@ -22,8 +22,13 @@ class TokenTracker: ObservableObject {
     var remainingTokens: Int { usage.remainingTokens(limit: tokenLimit) }
 
     func record(input: Int, output: Int, cached: Int = 0) {
+        usage.resetIfNeeded()   // clear stale day before writing
         usage.add(input: input, output: output, cached: cached)
         usage.save()
+    }
+
+    func refreshReset() {
+        usage.resetIfNeeded()
     }
 
     func updatePlan(_ newPlan: SubscriptionPlan) {

@@ -70,8 +70,8 @@ extension View {
 
 // MARK: - Date helpers
 extension Date {
-    var isSameMonth: Bool {
-        Calendar.current.isDate(self, equalTo: Date(), toGranularity: .month)
+    var isToday: Bool {
+        Calendar.current.isDateInToday(self)
     }
 
     var shortTimeString: String {
