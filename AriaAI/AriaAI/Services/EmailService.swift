@@ -268,7 +268,7 @@ class EmailService: ObservableObject {
         lines.append("Date: \(dateStr)")
         lines.append("MIME-Version: 1.0")
         lines.append("Content-Type: text/plain; charset=UTF-8")
-        lines.append("Content-Transfer-Encoding: quoted-printable")
+        lines.append("Content-Transfer-Encoding: 8bit")
         lines.append("")
         lines.append(draft.body)
         return lines.joined(separator: "\r\n")

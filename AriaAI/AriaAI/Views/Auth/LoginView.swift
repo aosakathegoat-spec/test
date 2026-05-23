@@ -267,8 +267,9 @@ struct GoogleSignInWebView: View {
             await EmailService.shared.storeTokensFromLogin(accessToken: accessToken, refreshToken: refreshToken)
             auth.signInWithGoogle(id: profile.id, name: profile.name, email: profile.email)
         } catch {
-            let asError = error as? ASAuthorizationError
-            if asError?.code != .canceled {
+            let isCancelled = (error as? ASWebAuthenticationSessionError)?.code == .canceledLogin
+                           || (error as? ASAuthorizationError)?.code == .canceled
+            if !isCancelled {
                 auth.authError = error.localizedDescription
             }
         }

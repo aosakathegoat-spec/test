@@ -50,11 +50,15 @@ class InboxViewModel: ObservableObject {
         error = nil
         do {
             try await emailService.sendEmail(draftEmail)
-            UINotificationFeedbackGenerator().notificationOccurred(.success)
+            let gen = UINotificationFeedbackGenerator()
+            gen.prepare()
+            gen.notificationOccurred(.success)
             draftEmail = DraftEmail()
             showCompose = false
         } catch {
-            UINotificationFeedbackGenerator().notificationOccurred(.error)
+            let gen = UINotificationFeedbackGenerator()
+            gen.prepare()
+            gen.notificationOccurred(.error)
             self.error = error.localizedDescription
         }
         isSending = false

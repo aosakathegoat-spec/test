@@ -112,6 +112,7 @@ struct AgeEntryView: View {
                         title: "Continue",
                         gradient: Theme.Colors.gradientPrimary
                     ) {
+                        auth.birthDay = min(auth.birthDay, maxDay)
                         withAnimation(Theme.Animation.spring) {
                             auth.saveAge()
                         }
