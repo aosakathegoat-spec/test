@@ -163,9 +163,9 @@ struct ComposeEmailView: View {
                                         .tint(.white)
                                         .scaleEffect(0.8)
                                 } else {
-                                    Image(systemName: "wand.and.stars")
+                                    Image(systemName: vm.draftEmail.body.isEmpty ? "wand.and.stars" : "arrow.clockwise")
                                 }
-                                Text(vm.isGeneratingDraft ? "Generating…" : "AI Draft")
+                                Text(vm.isGeneratingDraft ? "Generating…" : vm.draftEmail.body.isEmpty ? "AI Draft" : "Regenerate Draft")
                                     .font(Theme.Typography.subheadline(.medium))
                             }
                             .foregroundStyle(.white)
@@ -178,6 +178,7 @@ struct ComposeEmailView: View {
                                 )
                             )
                             .clipShape(RoundedRectangle(cornerRadius: Theme.Glass.cornerRadiusSm))
+                            .animation(Theme.Animation.snappy, value: vm.draftEmail.body.isEmpty)
                         }
                         .buttonStyle(.plain)
                         .disabled(vm.isGeneratingDraft)

@@ -153,6 +153,25 @@ struct PricingView: View {
                 .background(Color.white.opacity(0.06))
                 .clipShape(RoundedRectangle(cornerRadius: Theme.Glass.cornerRadiusSm))
                 .buttonStyle(.plain)
+            } else if isPlanDowngrade(selectedPlan) {
+                VStack(spacing: Theme.Spacing.xs) {
+                    Button("Manage in App Store") {
+                        if let url = URL(string: "https://apps.apple.com/account/subscriptions") {
+                            UIApplication.shared.open(url)
+                        }
+                    }
+                    .font(Theme.Typography.body(.medium))
+                    .foregroundStyle(Theme.Colors.textSecondary)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: Theme.Size.buttonHeight)
+                    .background(Color.white.opacity(0.06))
+                    .clipShape(RoundedRectangle(cornerRadius: Theme.Glass.cornerRadiusSm))
+                    .buttonStyle(.plain)
+                    Text("To downgrade, manage your subscription in the App Store.")
+                        .font(Theme.Typography.caption())
+                        .foregroundStyle(Theme.Colors.textTertiary)
+                        .multilineTextAlignment(.center)
+                }
             } else {
                 GradientButton(
                     title: isPurchasing
@@ -209,6 +228,13 @@ struct PricingView: View {
                 .padding(.horizontal, Theme.Spacing.xl)
         }
         .padding(Theme.Spacing.lg)
+    }
+
+    private func isPlanDowngrade(_ plan: SubscriptionPlan) -> Bool {
+        let all = SubscriptionPlan.allCases
+        guard let currentIdx = all.firstIndex(of: tokenTracker.plan),
+              let selectedIdx = all.firstIndex(of: plan) else { return false }
+        return selectedIdx < currentIdx
     }
 
     private func purchase(_ plan: SubscriptionPlan) async {
