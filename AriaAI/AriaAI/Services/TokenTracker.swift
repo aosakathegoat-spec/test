@@ -37,6 +37,7 @@ class TokenTracker: ObservableObject {
     }
 
     func canSendRequest(estimatedTokens: Int = 500) -> Bool {
-        !isOverLimit && (usage.totalTokens + estimatedTokens) <= tokenLimit
+        refreshReset()  // ensure stale day is cleared before checking
+        return !isOverLimit && (usage.totalTokens + estimatedTokens) <= tokenLimit
     }
 }

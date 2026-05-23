@@ -3,6 +3,7 @@ import SwiftUI
 struct ContentView: View {
     @EnvironmentObject private var appState: AppState
     @EnvironmentObject private var auth: AuthService
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         Group {
@@ -29,6 +30,9 @@ struct ContentView: View {
         .animation(.spring(response: 0.45, dampingFraction: 0.82), value: auth.isLoggedIn)
         .animation(.spring(response: 0.45, dampingFraction: 0.82), value: auth.hasEnteredAge)
         .animation(.spring(response: 0.45, dampingFraction: 0.82), value: appState.hasCompletedOnboarding)
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active { appState.tokenTracker.refreshReset() }
+        }
         .sheet(isPresented: $appState.showPricingSheet) {
             PricingView().environmentObject(appState)
         }
