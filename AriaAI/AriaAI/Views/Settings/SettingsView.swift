@@ -301,9 +301,11 @@ struct SettingsView: View {
                             ),
                             displayedComponents: .hourAndMinute
                         )
+                        .datePickerStyle(.compact)
                         .font(Theme.Typography.body())
                         .foregroundStyle(Theme.Colors.textPrimary)
                         .tint(Theme.Colors.primary)
+                        .colorScheme(.dark)
                     }
                 }
             }

@@ -57,12 +57,21 @@ struct MainTabView: View {
             // Page content — full screen
             ZStack {
                 switch selectedTab {
-                case .chat:     ChatView()
-                case .inbox:    InboxView()
-                case .morning:  MorningBriefingView()
-                case .settings: SettingsView()
+                case .chat:
+                    ChatView()
+                        .transition(.opacity)
+                case .inbox:
+                    InboxView()
+                        .transition(.opacity)
+                case .morning:
+                    MorningBriefingView()
+                        .transition(.opacity)
+                case .settings:
+                    SettingsView()
+                        .transition(.opacity)
                 }
             }
+            .animation(.easeOut(duration: 0.18), value: selectedTab)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .ignoresSafeArea(edges: .bottom)
 

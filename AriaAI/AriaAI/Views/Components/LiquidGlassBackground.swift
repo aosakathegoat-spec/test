@@ -165,10 +165,20 @@ struct GradientButton: View {
             .frame(maxWidth: fullWidth ? .infinity : nil)
             .frame(height: Theme.Size.buttonHeight)
             .padding(.horizontal, fullWidth ? 0 : Theme.Spacing.lg)
+            .background(gradient)
+            .clipShape(RoundedRectangle(cornerRadius: Theme.Glass.cornerRadiusSm, style: .continuous))
+            .shadow(color: .black.opacity(0.18), radius: 8, x: 0, y: 4)
         }
-        .background(gradient)
-        .clipShape(RoundedRectangle(cornerRadius: Theme.Glass.cornerRadiusSm, style: .continuous))
-        .shadow(color: .black.opacity(0.18), radius: 8, x: 0, y: 4)
+        .buttonStyle(GradientPressStyle())
         .disabled(isLoading)
+    }
+}
+
+private struct GradientPressStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
+            .opacity(configuration.isPressed ? 0.88 : 1.0)
+            .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
     }
 }
