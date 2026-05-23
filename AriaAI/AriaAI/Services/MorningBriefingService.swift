@@ -6,6 +6,7 @@ class MorningBriefingService: ObservableObject {
     static let shared = MorningBriefingService()
 
     @Published var isScheduled: Bool
+    @Published var lastScheduleAttemptDenied = false
 
     private init() {
         isScheduled = UserDefaults.standard.bool(forKey: Constants.UserDefaultsKeys.morningBriefing)
@@ -66,6 +67,7 @@ class MorningBriefingService: ObservableObject {
             Task { @MainActor [weak self] in
                 UserDefaults.standard.set(granted, forKey: Constants.UserDefaultsKeys.morningBriefing)
                 self?.isScheduled = granted
+                if !granted { self?.lastScheduleAttemptDenied = true }
             }
             guard granted else { return }
 

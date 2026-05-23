@@ -7,6 +7,7 @@ struct MorningBriefingView: View {
     @ObservedObject private var voiceService = VoiceService.shared
     @EnvironmentObject private var appState: AppState
     @State private var showScheduler = false
+    @State private var showNotificationDeniedAlert = false
 
     var body: some View {
         ZStack {
@@ -21,6 +22,19 @@ struct MorningBriefingView: View {
         }
         .sheet(isPresented: $showScheduler) { schedulerSheet }
         .onAppear { vm.setup(appState: appState) }
+        .onChange(of: vm.notificationDenied) { _, denied in
+            if denied { showNotificationDeniedAlert = true; vm.notificationDenied = false }
+        }
+        .alert("Notifications Required", isPresented: $showNotificationDeniedAlert) {
+            Button("Open Settings") {
+                if let url = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(url)
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Enable notifications in Settings to receive your daily morning briefing.")
+        }
     }
 
     private var header: some View {
@@ -354,6 +368,7 @@ class MorningBriefingViewModel: ObservableObject {
     @Published var isScheduled = false
     @Published var scheduledTime = Date()
     @Published var spinAngle: Double = 0
+    @Published var notificationDenied = false
 
     private var appState: AppState?
     private let briefingService = MorningBriefingService.shared
@@ -371,6 +386,11 @@ class MorningBriefingViewModel: ObservableObject {
         briefingService.$isScheduled
             .receive(on: RunLoop.main)
             .assign(to: \.isScheduled, on: self)
+            .store(in: &cancellables)
+        briefingService.$lastScheduleAttemptDenied
+            .filter { $0 }
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in self?.notificationDenied = true }
             .store(in: &cancellables)
     }
 

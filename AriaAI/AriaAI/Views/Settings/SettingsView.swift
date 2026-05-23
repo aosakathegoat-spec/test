@@ -12,6 +12,8 @@ struct SettingsView: View {
     @State private var showVoicePicker = false
     @State private var showSignOutConfirm = false
     @State private var showGmailConnect = false
+    @State private var showNotificationDeniedAlert = false
+    @ObservedObject private var briefingService = MorningBriefingService.shared
 
     var body: some View {
         ZStack {
@@ -33,6 +35,19 @@ struct SettingsView: View {
         .sheet(isPresented: $showPricing) { PricingView().environmentObject(appState) }
         .sheet(isPresented: $showVoicePicker) { voicePickerSheet }
         .sheet(isPresented: $showGmailConnect) { gmailConnectSheet }
+        .onChange(of: briefingService.lastScheduleAttemptDenied) { _, denied in
+            if denied { showNotificationDeniedAlert = true; briefingService.lastScheduleAttemptDenied = false }
+        }
+        .alert("Notifications Required", isPresented: $showNotificationDeniedAlert) {
+            Button("Open Settings") {
+                if let url = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(url)
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Enable notifications in Settings to receive your daily morning briefing.")
+        }
     }
 
     // MARK: - Profile
