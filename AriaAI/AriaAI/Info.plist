@@ -81,5 +81,56 @@
     </array>
     <key>ITSAppUsesNonExemptEncryption</key>
     <false/>
+    <key>LSApplicationQueriesSchemes</key>
+    <array>
+        <string>maps</string>
+        <string>tel</string>
+        <string>sms</string>
+        <string>mailto</string>
+        <string>facetime</string>
+        <string>calshow</string>
+        <string>mobilenotes</string>
+        <string>music</string>
+        <string>podcasts</string>
+        <string>x-apple-health</string>
+        <string>itms-apps</string>
+        <string>instagram</string>
+        <string>twitter</string>
+        <string>fb</string>
+        <string>tiktok</string>
+        <string>snapchat</string>
+        <string>reddit</string>
+        <string>linkedin</string>
+        <string>barcelona</string>
+        <string>whatsapp</string>
+        <string>tg</string>
+        <string>discord</string>
+        <string>slack</string>
+        <string>zoomus</string>
+        <string>msteams</string>
+        <string>googlechrome</string>
+        <string>googlegmail</string>
+        <string>googledrive</string>
+        <string>notion</string>
+        <string>comgooglemaps</string>
+        <string>waze</string>
+        <string>uber</string>
+        <string>lyft</string>
+        <string>youtube</string>
+        <string>nflx</string>
+        <string>spotify</string>
+        <string>twitch</string>
+        <string>shazam</string>
+        <string>tidal</string>
+        <string>venmo</string>
+        <string>paypal</string>
+        <string>cashme</string>
+        <string>robinhood</string>
+        <string>doordash</string>
+        <string>ubereats</string>
+        <string>grubhub</string>
+        <string>strava</string>
+        <string>pelotoncycle</string>
+    </array>
 </dict>
 </plist>

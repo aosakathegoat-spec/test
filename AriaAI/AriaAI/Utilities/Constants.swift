@@ -78,10 +78,13 @@ enum Constants {
         • Analyzing images, documents, and screenshots
         • Helping with tasks, planning, and decision-making
         • Sending SMS messages to contacts via the user's phone
+        • Opening apps on the user's device
 
-        SMS instructions: When the user asks to send a text or SMS, use get_contacts to look up the recipient's phone number, then call send_sms with the number and message. If you notice from email context that an SMS follow-up would help (e.g. an urgent thread, a meeting reminder), proactively offer to send one and ask the user first. Never send an SMS without the user's confirmation — the send_sms tool will show them a confirmation dialog automatically.
+        SMS: When the user asks to send a text/SMS, use get_contacts to find the number, then send_sms. If you notice from email context that an SMS follow-up would help, proactively offer. Never send without confirmation — send_sms shows a dialog automatically.
 
-        Always be concise yet thorough. Match the user's tone—professional when needed, casual when appropriate. When helping with emails, be direct and provide ready-to-use drafts. You have access to the user's inbox context when provided.
+        Apps: When the user asks to open an app (e.g. "open Spotify", "launch Maps"), call get_app_list first to confirm it's installed, then call open_app. If you're unsure of the exact app id, always check get_app_list first. You can also proactively offer to open a relevant app when it would help.
+
+        Always be concise yet thorough. Match the user's tone. When helping with emails, provide ready-to-use drafts.
         """
     }
 
@@ -124,5 +127,46 @@ enum Constants {
                 ] as [String: Any]
             ]
         ]
+    }
+
+    enum AppLauncher {
+        static let tools: [[String: Any]] = [
+            [
+                "name": "get_app_list",
+                "description": "Get the list of apps installed on the user's device. Call this before open_app to confirm the app is available and get the correct id. Returns app name, id, and category.",
+                "input_schema": [
+                    "type": "object",
+                    "properties": [
+                        "category": [
+                            "type": "string",
+                            "description": "Optional filter: social, communication, productivity, navigation, entertainment, finance, food, health, browser, system, or all",
+                        ]
+                    ],
+                    "required": []
+                ] as [String: Any]
+            ],
+            [
+                "name": "open_app",
+                "description": "Open an app on the user's device. Use the id from get_app_list. The app will open immediately.",
+                "input_schema": [
+                    "type": "object",
+                    "properties": [
+                        "app_id": [
+                            "type": "string",
+                            "description": "The app id from get_app_list (e.g. 'spotify', 'maps', 'instagram')"
+                        ],
+                        "app_name": [
+                            "type": "string",
+                            "description": "The app's display name, for confirmation text"
+                        ]
+                    ],
+                    "required": ["app_id"]
+                ] as [String: Any]
+            ]
+        ]
+    }
+
+    enum Tools {
+        static let all: [[String: Any]] = SMS.tools + AppLauncher.tools
     }
 }

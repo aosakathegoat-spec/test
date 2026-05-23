@@ -78,7 +78,7 @@ class ChatViewModel: ObservableObject {
                 let stream = await AIService.shared.streamMessage(
                     messages: windowedHistory,
                     plan: appState.plan,
-                    tools: Constants.SMS.tools
+                    tools: Constants.Tools.all
                 )
 
                 var fullText = ""
@@ -365,7 +365,7 @@ class ChatViewModel: ObservableObject {
             // Non-streaming follow-up
             let (nextText, nextCalls, nextUsage) = try await AIService.shared.sendRawWithTools(
                 rawMessages: rawMessages,
-                tools: Constants.SMS.tools
+                tools: Constants.Tools.all
             )
             appState.tokenTracker.record(
                 input: nextUsage.inputTokens,
@@ -423,6 +423,24 @@ class ChatViewModel: ObservableObject {
             } else {
                 return "User declined to send the SMS."
             }
+
+        case "get_app_list":
+            let category = input["category"] as? String
+            let apps = AppLauncherService.shared.getInstalledApps(category: category)
+            guard !apps.isEmpty else {
+                return "No apps found\(category != nil ? " in category '\(category!)'" : "")."
+            }
+            let lines = apps.map { "id: \($0.id) | name: \($0.name) | category: \($0.category)" }
+            return "Installed apps (\(apps.count)):\n" + lines.joined(separator: "\n")
+
+        case "open_app":
+            let appId   = (input["app_id"]   as? String) ?? ""
+            let appName = (input["app_name"] as? String) ?? appId
+            guard !appId.isEmpty else { return "Error: app_id is required" }
+            let success = await AppLauncherService.shared.openApp(id: appId)
+            return success
+                ? "Opened \(appName) successfully."
+                : "Could not open \(appName) — it may not be installed or the app id is incorrect."
 
         default:
             return "Unknown tool: \(name)"
