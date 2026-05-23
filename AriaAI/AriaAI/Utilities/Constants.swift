@@ -9,7 +9,7 @@ enum Constants {
         static let model = "claude-haiku-4-5-20251001"
         static let version = "2023-06-01"
         static let betaHeaders = "prompt-caching-2024-07-31"
-        static let maxTokens = 4096
+        static let maxTokens = 1024
     }
 
     enum Products {
