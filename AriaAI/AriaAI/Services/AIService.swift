@@ -2,6 +2,7 @@ import Foundation
 
 enum AIError: LocalizedError {
     case noAPIKey
+    case invalidAPIKey
     case overLimit
     case networkError(String)
     case decodingError(String)
@@ -10,6 +11,7 @@ enum AIError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .noAPIKey:         return "No API key set. Please add your Anthropic API key in Settings."
+        case .invalidAPIKey:    return "Invalid API key. Please check your Anthropic API key in Settings."
         case .overLimit:        return "You've reached your daily token limit. Upgrade your plan or wait until 8 AM PST for a reset."
         case .networkError(let m): return "Network error: \(m)"
         case .decodingError(let m): return "Response error: \(m)"
@@ -55,7 +57,7 @@ actor AIService {
                         throw AIError.networkError("Invalid response")
                     }
 
-                    if httpResponse.statusCode == 401 { throw AIError.noAPIKey }
+                    if httpResponse.statusCode == 401 { throw AIError.invalidAPIKey }
                     if httpResponse.statusCode != 200 {
                         throw AIError.networkError("HTTP \(httpResponse.statusCode)")
                     }
@@ -117,7 +119,7 @@ actor AIService {
         )
         let (data, response) = try await session.data(for: request)
         guard let http = response as? HTTPURLResponse else { throw AIError.networkError("Invalid response") }
-        if http.statusCode == 401 { throw AIError.noAPIKey }
+        if http.statusCode == 401 { throw AIError.invalidAPIKey }
         guard http.statusCode == 200 else {
             let body = String(data: data, encoding: .utf8) ?? ""
             throw AIError.networkError("HTTP \(http.statusCode): \(body)")

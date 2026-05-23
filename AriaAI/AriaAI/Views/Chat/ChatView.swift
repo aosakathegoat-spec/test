@@ -20,6 +20,9 @@ struct ChatView: View {
             }
         }
         .sheet(isPresented: $showSessions) { sessionSheet }
+        .onChange(of: vm.isVoiceActive) { _, active in
+            if active { inputFocused = false }
+        }
         .alert("Error", isPresented: Binding(
             get: { vm.error != nil },
             set: { if !$0 { vm.clearError() } }
@@ -443,7 +446,7 @@ struct ChatView: View {
         for item in items {
             if let data = try? await item.loadTransferable(type: Data.self),
                let image = UIImage(data: data) {
-                vm.addImage(image)
+                withAnimation(Theme.Animation.snappy) { vm.addImage(image) }
             }
         }
         pickerItems = []
