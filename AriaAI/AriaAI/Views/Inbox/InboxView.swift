@@ -138,8 +138,10 @@ struct InboxView: View {
                 )
                 .padding(.horizontal, Theme.Spacing.md)
                 .padding(.bottom, Theme.Spacing.xs)
+                .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
+        .animation(Theme.Animation.smooth, value: vm.emails.isEmpty)
     }
 
     @ViewBuilder
@@ -164,6 +166,10 @@ struct InboxView: View {
                     VStack(spacing: 0) {
                         EmailRowView(email: email)
                             .onTapGesture {
+                                UIApplication.shared.sendAction(
+                                    #selector(UIResponder.resignFirstResponder),
+                                    to: nil, from: nil, for: nil
+                                )
                                 let gen = UIImpactFeedbackGenerator(style: .light)
                                 gen.prepare()
                                 gen.impactOccurred()
@@ -180,6 +186,7 @@ struct InboxView: View {
             }
             .padding(.top, Theme.Spacing.xs)
         }
+        .scrollDismissesKeyboard(.interactively)
         .refreshable {
             await vm.loadEmails()
         }

@@ -64,6 +64,9 @@ struct PricingView: View {
                             isCurrent: tokenTracker.plan == plan,
                             priceString: purchaseService.priceString(for: plan)
                         ) {
+                            let gen = UIImpactFeedbackGenerator(style: .light)
+                            gen.prepare()
+                            gen.impactOccurred()
                             withAnimation(Theme.Animation.spring) { selectedPlan = plan }
                         }
                     }

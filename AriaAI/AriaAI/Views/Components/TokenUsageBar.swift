@@ -79,6 +79,9 @@ struct TokenUsageBar: View {
                         }
                     }
                     .frame(height: 10)
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel("Usage progress")
+                    .accessibilityValue("\(Int(overallPercent * 100)) percent")
                 }
 
                 // Token breakdown
