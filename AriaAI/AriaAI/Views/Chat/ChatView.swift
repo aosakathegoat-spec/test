@@ -6,6 +6,7 @@ struct ChatView: View {
     @StateObject private var vm = ChatViewModel()
     @ObservedObject private var voiceService = VoiceService.shared
     @EnvironmentObject private var appState: AppState
+    @Environment(\.scenePhase) private var scenePhase
     @FocusState private var inputFocused: Bool
     @State private var showSessions = false
     @State private var showImagePicker = false
@@ -39,6 +40,16 @@ struct ChatView: View {
         .onAppear {
             inputFocused = false
             checkPendingSiriRequest()
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            switch newPhase {
+            case .active:
+                Task { await vm.checkForNewActivity() }
+            case .background:
+                vm.recordBackground()
+            default:
+                break
+            }
         }
         .onReceive(NotificationCenter.default.publisher(for: .siriRequestReceived)) { notification in
             guard let request = notification.object as? String else { return }

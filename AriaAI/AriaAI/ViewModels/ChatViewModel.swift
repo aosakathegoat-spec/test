@@ -499,6 +499,59 @@ class ChatViewModel: ObservableObject {
         }
     }
 
+    // MARK: - Proactive notification check
+
+    func checkForNewActivity() async {
+        guard !isStreaming else { return }
+        guard appState.emailService.isAuthenticated else { return }
+
+        let key = Constants.UserDefaultsKeys.lastActiveTimestamp
+        let lastInterval = UserDefaults.standard.double(forKey: key)
+        let timeAway = Date().timeIntervalSince1970 - lastInterval
+        guard lastInterval > 0, timeAway >= 300 else { return }
+
+        let lastActiveDate = Date(timeIntervalSince1970: lastInterval)
+        guard let emails = try? await appState.emailService.fetchInbox(maxResults: 10) else { return }
+        let fresh = emails.filter { $0.date > lastActiveDate }
+        guard !fresh.isEmpty else { return }
+
+        let minutesAway = max(1, Int(timeAway / 60))
+        let list = fresh.prefix(5)
+            .map { "From: \($0.from.displayName), Subject: \($0.subject)" }
+            .joined(separator: "\n")
+
+        let prompt = """
+        The user just returned to the Aria app after \(minutesAway) minute(s) away. \
+        They have \(fresh.count) new email(s) since they left:
+        \(list)
+
+        If any look personal or time-sensitive (family, friends, something requiring a reply or action), \
+        write 1–2 casual sentences calling it out and offer to help — exactly like a smart assistant \
+        naturally would. Example: "Hey, looks like Mom just emailed you — she's asking if you're heading \
+        home. Want me to reply for you?" If nothing stands out, reply with just the word: SKIP
+        """
+
+        guard let (response, _) = try? await AIService.shared.sendMessage(
+            messages: [Message(role: .user, content: prompt)]
+        ) else { return }
+
+        let trimmed = response.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, !trimmed.lowercased().hasPrefix("skip") else { return }
+
+        messages.append(Message(role: .assistant, content: trimmed))
+        scrollToBottom = true
+        saveCurrentSession()
+    }
+
+    func recordBackground() {
+        UserDefaults.standard.set(
+            Date().timeIntervalSince1970,
+            forKey: Constants.UserDefaultsKeys.lastActiveTimestamp
+        )
+    }
+
+    // MARK: - Streaming control
+
     func cancelStreaming() {
         activeStreamTask?.cancel()
         activeStreamTask = nil
