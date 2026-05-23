@@ -83,7 +83,13 @@ struct PricingView: View {
                         .foregroundStyle(Theme.Colors.textTertiary)
                         .multilineTextAlignment(.center)
                     Button("Restore Purchases") {
-                        Task { try? await purchaseService.restorePurchases() }
+                        Task {
+                            do {
+                                try await purchaseService.restorePurchases()
+                            } catch {
+                                purchaseError = error.localizedDescription
+                            }
+                        }
                     }
                     .font(Theme.Typography.caption(.medium))
                     .foregroundStyle(Theme.Colors.primary)

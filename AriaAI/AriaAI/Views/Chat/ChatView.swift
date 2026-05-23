@@ -235,12 +235,12 @@ struct ChatView: View {
                     .transition(.scale.combined(with: .opacity))
                 } else if vm.inputText.isEmpty && vm.selectedImages.isEmpty {
                     VoiceButton(
-                        isListening: appState.voiceService.isListening,
-                        isSpeaking: appState.voiceService.isSpeaking
+                        isListening: voiceService.isListening,
+                        isSpeaking: voiceService.isSpeaking
                     ) {
                         if appState.plan.canUseVoice {
                             Task {
-                                if appState.voiceService.isListening {
+                                if voiceService.isListening {
                                     await vm.stopVoiceAndSend()
                                 } else {
                                     await vm.startVoiceInput()
@@ -287,7 +287,7 @@ struct ChatView: View {
             // Waveform
             HStack(spacing: 0) {
                 Spacer()
-                SoundWaveView(isActive: appState.voiceService.isListening || appState.voiceService.isSpeaking)
+                SoundWaveView(isActive: voiceService.isListening || voiceService.isSpeaking)
                     .frame(width: 100)
                 Spacer()
             }
@@ -305,7 +305,7 @@ struct ChatView: View {
             HStack(spacing: Theme.Spacing.xl) {
                 // Stop speaking
                 Button {
-                    appState.voiceService.stop()
+                    voiceService.stop()
                 } label: {
                     Image(systemName: "speaker.slash.fill")
                         .font(.system(size: 20))
@@ -324,7 +324,7 @@ struct ChatView: View {
                     isSpeaking: voiceService.isSpeaking
                 ) {
                     Task {
-                        if appState.voiceService.isListening {
+                        if voiceService.isListening {
                             await vm.stopVoiceAndSend()
                         } else {
                             await vm.startVoiceInput()
