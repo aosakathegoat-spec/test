@@ -44,15 +44,20 @@ class InboxViewModel: ObservableObject {
     }
 
     func sendEmail() async {
-        guard draftEmail.isValid else { return }
+        guard draftEmail.isValid else {
+            error = "Please fill in To, Subject, and message body."
+            return
+        }
         isSending = true
         error = nil
         do {
             try await emailService.sendEmail(draftEmail)
+            UINotificationFeedbackGenerator().notificationOccurred(.success)
             sendSuccess = true
             draftEmail = DraftEmail()
             showCompose = false
         } catch {
+            UINotificationFeedbackGenerator().notificationOccurred(.error)
             self.error = error.localizedDescription
         }
         isSending = false
@@ -105,7 +110,7 @@ class InboxViewModel: ObservableObject {
 
     func authenticateGmail() async {
         do {
-            try await emailService.authenticate(from: nil)
+            try await emailService.authenticate()
             await loadEmails()
         } catch {
             self.error = error.localizedDescription

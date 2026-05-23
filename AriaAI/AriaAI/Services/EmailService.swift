@@ -7,13 +7,15 @@ enum EmailError: LocalizedError {
     case sendFailed(String)
     case fetchFailed(String)
     case authFailed(String)
+    case rateLimited
 
     var errorDescription: String? {
         switch self {
         case .notAuthenticated:   return "Please connect your Gmail account in Settings."
-        case .sendFailed(let m):  return "Failed to send email: \(m)"
-        case .fetchFailed(let m): return "Failed to fetch emails: \(m)"
-        case .authFailed(let m):  return "Authentication failed: \(m)"
+        case .sendFailed(let m):  return "Failed to send: \(m)"
+        case .fetchFailed(let m): return "Failed to load emails: \(m)"
+        case .authFailed(let m):  return "Auth failed: \(m)"
+        case .rateLimited:        return "Too many requests — please wait a moment."
         }
     }
 }
@@ -23,111 +25,138 @@ class EmailService: ObservableObject {
     static let shared = EmailService()
 
     @Published var isAuthenticated = false
-    @Published var userEmail = ""
-    @Published var isLoading = false
+    @Published var userEmail       = ""
 
-    private var accessToken: String = ""
-    private var refreshToken: String = ""
-    private var tokenExpiry: Date = Date()
-
-    private init() {
-        loadStoredCredentials()
+    // Tokens stored in Keychain
+    private enum TokenKeys {
+        static let access  = "gmail_access_token"
+        static let refresh = "gmail_refresh_token"
+        static let expiry  = "gmail_token_expiry"   // UserDefaults (non-sensitive)
     }
+
+    private var accessToken:  String = ""
+    private var refreshToken: String = ""
+    private var tokenExpiry:  Date   = .distantPast
+
+    private let urlSession: URLSession = {
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest  = 30
+        config.timeoutIntervalForResource = 60
+        return URLSession(configuration: config)
+    }()
+
+    private init() { loadStoredCredentials() }
 
     private func loadStoredCredentials() {
-        let defaults = UserDefaults.standard
-        accessToken  = defaults.string(forKey: Constants.UserDefaultsKeys.gmailToken)   ?? ""
-        refreshToken = defaults.string(forKey: Constants.UserDefaultsKeys.gmailRefresh) ?? ""
-        userEmail    = defaults.string(forKey: Constants.UserDefaultsKeys.gmailEmail)   ?? ""
-        isAuthenticated = !accessToken.isEmpty
+        accessToken  = KeychainService.get(TokenKeys.access)  ?? ""
+        refreshToken = KeychainService.get(TokenKeys.refresh) ?? ""
+        tokenExpiry  = (UserDefaults.standard.object(forKey: TokenKeys.expiry) as? Date) ?? .distantPast
+        userEmail    = UserDefaults.standard.string(forKey: Constants.UserDefaultsKeys.gmailEmail) ?? ""
+        isAuthenticated = !refreshToken.isEmpty  // refresh token presence = authenticated
     }
 
-    // MARK: - OAuth
-    func authenticate(from viewController: UIViewController?) async throws {
-        let state = UUID().uuidString
+    // MARK: - Called when Google sign-in already happened via LoginView
+    func storeTokensFromLogin(accessToken: String) async {
+        self.accessToken = accessToken
+        tokenExpiry = Date().addingTimeInterval(3500)
+        KeychainService.set(accessToken, for: TokenKeys.access)
+        UserDefaults.standard.set(tokenExpiry, forKey: TokenKeys.expiry)
+        isAuthenticated = true
+        await fetchUserEmail()
+    }
+
+    // MARK: - OAuth (Settings re-auth)
+    func authenticate() async throws {
         var components = URLComponents(string: Constants.Gmail.authURL)!
         components.queryItems = [
             .init(name: "client_id",     value: Constants.Gmail.clientID),
             .init(name: "redirect_uri",  value: Constants.Gmail.redirectURI),
             .init(name: "response_type", value: "code"),
             .init(name: "scope",         value: Constants.Gmail.scope),
-            .init(name: "state",         value: state),
             .init(name: "access_type",   value: "offline"),
             .init(name: "prompt",        value: "consent")
         ]
-
-        guard let authURL = components.url else { throw EmailError.authFailed("Invalid URL") }
+        guard let authURL = components.url else { throw EmailError.authFailed("Bad URL") }
 
         let code: String = try await withCheckedThrowingContinuation { cont in
             let session = ASWebAuthenticationSession(
                 url: authURL,
                 callbackURLScheme: "com.aria.assistant"
             ) { callbackURL, error in
-                if let error { cont.resume(throwing: EmailError.authFailed(error.localizedDescription)); return }
-                guard let url = callbackURL,
-                      let code = URLComponents(url: url, resolvingAgainstBaseURL: false)?
+                if let error {
+                    cont.resume(throwing: EmailError.authFailed(error.localizedDescription))
+                    return
+                }
+                guard let code = URLComponents(url: callbackURL!, resolvingAgainstBaseURL: false)?
                         .queryItems?.first(where: { $0.name == "code" })?.value
-                else { cont.resume(throwing: EmailError.authFailed("No auth code")); return }
+                else {
+                    cont.resume(throwing: EmailError.authFailed("No auth code returned"))
+                    return
+                }
                 cont.resume(returning: code)
             }
+            session.presentationContextProvider = PresentationProvider.shared
             session.prefersEphemeralWebBrowserSession = false
-            session.start()
+            DispatchQueue.main.async { _ = session.start() }
         }
-
         try await exchangeCodeForTokens(code)
     }
 
     private func exchangeCodeForTokens(_ code: String) async throws {
-        var request = URLRequest(url: URL(string: Constants.Gmail.tokenURL)!)
-        request.httpMethod = "POST"
-        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
-
-        let params = [
-            "code":          code,
-            "client_id":     Constants.Gmail.clientID,
-            "redirect_uri":  Constants.Gmail.redirectURI,
-            "grant_type":    "authorization_code"
+        var req = URLRequest(url: URL(string: Constants.Gmail.tokenURL)!)
+        req.httpMethod = "POST"
+        req.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+        let params: [String: String] = [
+            "code": code, "client_id": Constants.Gmail.clientID,
+            "redirect_uri": Constants.Gmail.redirectURI, "grant_type": "authorization_code"
         ]
-        request.httpBody = params.map { "\($0.key)=\($0.value)" }.joined(separator: "&").data(using: .utf8)
+        req.httpBody = params.percentEncoded
 
-        let (data, _) = try await URLSession.shared.data(for: request)
-        let response = try JSONDecoder().decode(OAuthResponse.self, from: data)
+        let (data, _) = try await urlSession.data(for: req)
+        let resp = try JSONDecoder().decode(OAuthTokenResponse.self, from: data)
+        guard resp.accessToken != nil else {
+            let raw = String(data: data, encoding: .utf8) ?? "unknown"
+            throw EmailError.authFailed(raw)
+        }
 
-        accessToken  = response.accessToken
-        refreshToken = response.refreshToken ?? refreshToken
-        tokenExpiry  = Date().addingTimeInterval(TimeInterval(response.expiresIn ?? 3600))
-
-        let defaults = UserDefaults.standard
-        defaults.set(accessToken,  forKey: Constants.UserDefaultsKeys.gmailToken)
-        defaults.set(refreshToken, forKey: Constants.UserDefaultsKeys.gmailRefresh)
-        isAuthenticated = true
+        storeTokens(resp)
         await fetchUserEmail()
     }
 
     private func refreshAccessToken() async throws {
         guard !refreshToken.isEmpty else { throw EmailError.notAuthenticated }
-
-        var request = URLRequest(url: URL(string: Constants.Gmail.tokenURL)!)
-        request.httpMethod = "POST"
-        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
-
-        let params = [
+        var req = URLRequest(url: URL(string: Constants.Gmail.tokenURL)!)
+        req.httpMethod = "POST"
+        req.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+        let params: [String: String] = [
             "refresh_token": refreshToken,
             "client_id":     Constants.Gmail.clientID,
             "grant_type":    "refresh_token"
         ]
-        request.httpBody = params.map { "\($0.key)=\($0.value)" }.joined(separator: "&").data(using: .utf8)
+        req.httpBody = params.percentEncoded
 
-        let (data, _) = try await URLSession.shared.data(for: request)
-        let response = try JSONDecoder().decode(OAuthResponse.self, from: data)
+        let (data, _) = try await urlSession.data(for: req)
+        let resp = try JSONDecoder().decode(OAuthTokenResponse.self, from: data)
+        storeTokens(resp)
+    }
 
-        accessToken = response.accessToken
-        tokenExpiry = Date().addingTimeInterval(TimeInterval(response.expiresIn ?? 3600))
-        UserDefaults.standard.set(accessToken, forKey: Constants.UserDefaultsKeys.gmailToken)
+    private func storeTokens(_ resp: OAuthTokenResponse) {
+        if let at = resp.accessToken {
+            accessToken = at
+            KeychainService.set(at, for: TokenKeys.access)
+        }
+        if let rt = resp.refreshToken {
+            refreshToken = rt
+            KeychainService.set(rt, for: TokenKeys.refresh)
+        }
+        let expiry = Date().addingTimeInterval(TimeInterval(resp.expiresIn ?? 3600) - 60)
+        tokenExpiry = expiry
+        UserDefaults.standard.set(expiry, forKey: TokenKeys.expiry)
+        isAuthenticated = true
     }
 
     private func validToken() async throws -> String {
-        if Date() >= tokenExpiry.addingTimeInterval(-60) {
+        if Date() >= tokenExpiry {
             try await refreshAccessToken()
         }
         guard !accessToken.isEmpty else { throw EmailError.notAuthenticated }
@@ -136,12 +165,12 @@ class EmailService: ObservableObject {
 
     private func fetchUserEmail() async {
         guard let token = try? await validToken() else { return }
-        var request = URLRequest(url: URL(string: "https://www.googleapis.com/oauth2/v2/userinfo")!)
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        guard let (data, _) = try? await URLSession.shared.data(for: request),
-              let json = try? JSONDecoder().decode(UserInfoResponse.self, from: data)
+        var req = URLRequest(url: URL(string: "https://www.googleapis.com/oauth2/v3/userinfo")!)
+        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        guard let (data, _) = try? await urlSession.data(for: req),
+              let profile = try? JSONDecoder().decode(GoogleProfile.self, from: data)
         else { return }
-        userEmail = json.email
+        userEmail = profile.email
         UserDefaults.standard.set(userEmail, forKey: Constants.UserDefaultsKeys.gmailEmail)
     }
 
@@ -152,20 +181,26 @@ class EmailService: ObservableObject {
         var listURL = URLComponents(string: "\(Constants.Gmail.apiBase)/messages")!
         listURL.queryItems = [
             .init(name: "labelIds",   value: "INBOX"),
-            .init(name: "maxResults", value: "\(maxResults)"),
+            .init(name: "maxResults", value: "\(maxResults)")
         ]
-
         var listReq = URLRequest(url: listURL.url!)
         listReq.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        let (listData, _) = try await URLSession.shared.data(for: listReq)
-        let listResponse = try JSONDecoder().decode(GmailListResponse.self, from: listData)
 
-        guard let refs = listResponse.messages else { return [] }
+        let (listData, listResp) = try await urlSession.data(for: listReq)
+        if let http = listResp as? HTTPURLResponse, http.statusCode == 429 { throw EmailError.rateLimited }
+        if let http = listResp as? HTTPURLResponse, http.statusCode != 200 {
+            throw EmailError.fetchFailed("HTTP \(http.statusCode)")
+        }
 
+        let list = try JSONDecoder().decode(GmailListResponse.self, from: listData)
+        guard let refs = list.messages, !refs.isEmpty else { return [] }
+
+        // Fetch messages in parallel (capped at 20 concurrent)
         let emails = try await withThrowingTaskGroup(of: EmailMessage?.self) { group in
             for ref in refs.prefix(maxResults) {
-                group.addTask {
-                    try await self.fetchMessage(id: ref.id, token: token)
+                group.addTask { [weak self] in
+                    guard let self else { return nil }
+                    return try? await self.fetchMessage(id: ref.id, token: token)
                 }
             }
             var result: [EmailMessage] = []
@@ -177,71 +212,78 @@ class EmailService: ObservableObject {
         return emails
     }
 
-    private func fetchMessage(id: String, token: String) async throws -> EmailMessage? {
+    private func fetchMessage(id: String, token: String) async throws -> EmailMessage {
         var req = URLRequest(url: URL(string: "\(Constants.Gmail.apiBase)/messages/\(id)?format=full")!)
         req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        let (data, _) = try await URLSession.shared.data(for: req)
-        let gmailMsg = try JSONDecoder().decode(GmailMessage.self, from: data)
-        return gmailMsg.toEmailMessage()
+        let (data, resp) = try await urlSession.data(for: req)
+        if let http = resp as? HTTPURLResponse, http.statusCode != 200 {
+            throw EmailError.fetchFailed("HTTP \(http.statusCode)")
+        }
+        let msg = try JSONDecoder().decode(GmailMessage.self, from: data)
+        return msg.toEmailMessage()
     }
 
     // MARK: - Send Email
     func sendEmail(_ draft: DraftEmail) async throws {
+        guard draft.isValid else { throw EmailError.sendFailed("Missing required fields") }
         let token = try await validToken()
 
-        let rawMessage = buildRawMessage(from: draft, senderEmail: userEmail)
-        let base64 = rawMessage.data(using: .utf8)!
+        let raw = buildRFC2822(draft: draft, from: userEmail)
+        let base64 = Data(raw.utf8)
             .base64EncodedString()
             .replacingOccurrences(of: "+", with: "-")
             .replacingOccurrences(of: "/", with: "_")
             .replacingOccurrences(of: "=", with: "")
 
-        var request = URLRequest(url: URL(string: "\(Constants.Gmail.apiBase)/messages/send")!)
-        request.httpMethod = "POST"
-        request.setValue("Bearer \(token)",   forHTTPHeaderField: "Authorization")
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONSerialization.data(withJSONObject: ["raw": base64])
+        var req = URLRequest(url: URL(string: "\(Constants.Gmail.apiBase)/messages/send")!)
+        req.httpMethod = "POST"
+        req.setValue("Bearer \(token)",   forHTTPHeaderField: "Authorization")
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        req.httpBody = try JSONSerialization.data(withJSONObject: ["raw": base64])
 
-        let (data, response) = try await URLSession.shared.data(for: request)
-        guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
-            let msg = String(data: data, encoding: .utf8) ?? "Unknown error"
+        let (data, resp) = try await urlSession.data(for: req)
+        guard let http = resp as? HTTPURLResponse, http.statusCode == 200 else {
+            let msg = (try? JSONDecoder().decode(GmailErrorResponse.self, from: data))?.error.message
+                ?? String(data: data, encoding: .utf8)
+                ?? "Unknown error"
             throw EmailError.sendFailed(msg)
         }
     }
 
-    private func buildRawMessage(from draft: DraftEmail, senderEmail: String) -> String {
-        let dateStr = RFC2822DateFormatter.string(from: Date())
-        var raw = ""
-        raw += "From: \(senderEmail)\r\n"
-        raw += "To: \(draft.to)\r\n"
-        if !draft.cc.trimmed.isEmpty { raw += "Cc: \(draft.cc)\r\n" }
-        raw += "Subject: \(draft.subject)\r\n"
-        raw += "Date: \(dateStr)\r\n"
-        raw += "MIME-Version: 1.0\r\n"
-        raw += "Content-Type: text/plain; charset=UTF-8\r\n"
-        raw += "Content-Transfer-Encoding: 8bit\r\n"
-        raw += "\r\n"
-        raw += draft.body
-        return raw
+    private func buildRFC2822(draft: DraftEmail, from sender: String) -> String {
+        let dateStr = rfc2822DateFormatter.string(from: Date())
+        var lines: [String] = []
+        lines.append("From: \(sender)")
+        lines.append("To: \(draft.to.trimmed)")
+        if !draft.cc.trimmed.isEmpty { lines.append("Cc: \(draft.cc.trimmed)") }
+        lines.append("Subject: \(draft.subject.trimmed)")
+        lines.append("Date: \(dateStr)")
+        lines.append("MIME-Version: 1.0")
+        lines.append("Content-Type: text/plain; charset=UTF-8")
+        lines.append("Content-Transfer-Encoding: quoted-printable")
+        lines.append("")
+        lines.append(draft.body)
+        return lines.joined(separator: "\r\n")
     }
 
+    // MARK: - Disconnect
     func disconnect() {
+        KeychainService.delete(TokenKeys.access)
+        KeychainService.delete(TokenKeys.refresh)
+        UserDefaults.standard.removeObject(forKey: TokenKeys.expiry)
+        UserDefaults.standard.removeObject(forKey: Constants.UserDefaultsKeys.gmailEmail)
         accessToken  = ""
         refreshToken = ""
         userEmail    = ""
         isAuthenticated = false
-        let defaults = UserDefaults.standard
-        defaults.removeObject(forKey: Constants.UserDefaultsKeys.gmailToken)
-        defaults.removeObject(forKey: Constants.UserDefaultsKeys.gmailRefresh)
-        defaults.removeObject(forKey: Constants.UserDefaultsKeys.gmailEmail)
     }
 }
 
 // MARK: - Models
-private struct OAuthResponse: Decodable {
-    let accessToken: String
+private struct OAuthTokenResponse: Decodable {
+    let accessToken:  String?
     let refreshToken: String?
-    let expiresIn: Int?
+    let expiresIn:    Int?
     enum CodingKeys: String, CodingKey {
         case accessToken  = "access_token"
         case refreshToken = "refresh_token"
@@ -249,13 +291,22 @@ private struct OAuthResponse: Decodable {
     }
 }
 
-private struct UserInfoResponse: Decodable {
-    let email: String
+private struct GmailErrorResponse: Decodable {
+    struct ErrorBody: Decodable { let message: String }
+    let error: ErrorBody
 }
 
-private let RFC2822DateFormatter: DateFormatter = {
+private let rfc2822DateFormatter: DateFormatter = {
     let f = DateFormatter()
-    f.locale = Locale(identifier: "en_US_POSIX")
+    f.locale     = Locale(identifier: "en_US_POSIX")
     f.dateFormat = "EEE, dd MMM yyyy HH:mm:ss Z"
     return f
 }()
+
+private extension Dictionary where Key == String, Value == String {
+    var percentEncoded: Data? {
+        map { "\($0.key)=\($0.value.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")" }
+            .joined(separator: "&")
+            .data(using: .utf8)
+    }
+}

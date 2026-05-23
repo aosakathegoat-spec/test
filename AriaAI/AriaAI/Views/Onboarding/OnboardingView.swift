@@ -2,6 +2,7 @@ import SwiftUI
 
 struct OnboardingView: View {
     @EnvironmentObject private var appState: AppState
+    @EnvironmentObject private var auth: AuthService
     @State private var currentPage = 0
     @State private var name = ""
     @State private var isAnimating = false
@@ -186,8 +187,13 @@ struct OnboardingView: View {
                     .multilineTextAlignment(.center)
             }
 
-            // Name input
+            // Name input — pre-fill from auth if available
             TextField("Your name", text: $name)
+                .onAppear {
+                    if name.isEmpty && !auth.displayName.isEmpty {
+                        name = auth.displayName.components(separatedBy: " ").first ?? auth.displayName
+                    }
+                }
                 .font(.system(size: 24, weight: .medium, design: .rounded))
                 .foregroundStyle(Theme.Colors.textPrimary)
                 .multilineTextAlignment(.center)

@@ -40,6 +40,12 @@ targets:
       configs:
         Release:
           SWIFT_OPTIMIZATION_LEVEL: "-O"
+    dependencies:
+      - sdk: AuthenticationServices.framework
+      - sdk: StoreKit.framework
+      - sdk: AVFoundation.framework
+      - sdk: Speech.framework
+      - sdk: UserNotifications.framework
     info:
       path: AriaAI/Info.plist
     entitlements:

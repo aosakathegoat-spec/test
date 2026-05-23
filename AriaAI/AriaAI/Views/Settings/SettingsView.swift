@@ -4,8 +4,10 @@ import AVFoundation
 struct SettingsView: View {
     @StateObject private var vm = SettingsViewModel()
     @EnvironmentObject private var appState: AppState
+    @EnvironmentObject private var auth: AuthService
     @State private var showPricing = false
     @State private var showVoicePicker = false
+    @State private var showSignOutConfirm = false
 
     var body: some View {
         ZStack {
@@ -297,12 +299,36 @@ struct SettingsView: View {
             sectionHeader("About")
             AriaGlassCard {
                 VStack(spacing: 0) {
-                    settingsRowStatic(icon: "sparkle", label: "Version", value: "1.0.0")
+                    settingsRowStatic(icon: "sparkle",    label: "Version",    value: "1.0.0")
                     Divider().opacity(0.15).padding(.vertical, Theme.Spacing.xs)
-                    settingsRowStatic(icon: "cpu", label: "Model", value: "Claude Haiku")
+                    settingsRowStatic(icon: "cpu",        label: "Model",      value: "Claude Haiku")
                     Divider().opacity(0.15).padding(.vertical, Theme.Spacing.xs)
                     settingsRowStatic(icon: "building.2", label: "Powered by", value: "Anthropic")
                 }
+            }
+
+            // Sign out
+            Button {
+                showSignOutConfirm = true
+            } label: {
+                Text("Sign Out")
+                    .font(Theme.Typography.body(.medium))
+                    .foregroundStyle(Theme.Colors.error)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: Theme.Size.buttonHeight)
+                    .background(Theme.Colors.error.opacity(0.08))
+                    .clipShape(RoundedRectangle(cornerRadius: Theme.Glass.cornerRadiusSm))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: Theme.Glass.cornerRadiusSm)
+                            .stroke(Theme.Colors.error.opacity(0.2), lineWidth: 1)
+                    )
+            }
+            .buttonStyle(.plain)
+            .confirmationDialog("Sign Out", isPresented: $showSignOutConfirm, titleVisibility: .visible) {
+                Button("Sign Out", role: .destructive) { auth.signOut() }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("You'll need to sign in again to use Aria.")
             }
         }
     }

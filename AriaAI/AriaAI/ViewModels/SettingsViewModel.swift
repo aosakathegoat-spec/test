@@ -26,7 +26,7 @@ class SettingsViewModel: ObservableObject {
     }
 
     func loadSettings() {
-        apiKeyInput = UserDefaults.standard.string(forKey: Constants.UserDefaultsKeys.apiKey) ?? ""
+        apiKeyInput = AuthService.shared.apiKey  // reads from Keychain
         selectedVoiceID = voiceService.selectedVoiceID
         morningBriefingEnabled = UserDefaults.standard.bool(forKey: Constants.UserDefaultsKeys.morningBriefing)
         briefingHour = UserDefaults.standard.integer(forKey: Constants.UserDefaultsKeys.briefingHour).nonZero ?? 7
@@ -35,17 +35,17 @@ class SettingsViewModel: ObservableObject {
     }
 
     func saveAPIKey() {
-        let key = apiKeyInput.trimmed
-        UserDefaults.standard.set(key, forKey: Constants.UserDefaultsKeys.apiKey)
+        AuthService.shared.apiKey = apiKeyInput.trimmed  // saves to Keychain
         apiKeySaved = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
-            self?.apiKeySaved = false
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(2))
+            apiKeySaved = false
         }
     }
 
     func clearAPIKey() {
         apiKeyInput = ""
-        UserDefaults.standard.removeObject(forKey: Constants.UserDefaultsKeys.apiKey)
+        AuthService.shared.apiKey = ""
     }
 
     func saveVoiceSelection(_ id: String) {

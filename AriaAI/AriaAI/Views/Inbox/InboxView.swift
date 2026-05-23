@@ -133,16 +133,27 @@ struct InboxView: View {
 
     private var emailList: some View {
         ScrollView {
-            LazyVStack(spacing: 1) {
-                ForEach(vm.filteredEmails) { email in
-                    EmailRowView(email: email)
-                        .onTapGesture {
-                            vm.markAsRead(email)
-                            showEmailDetail = email
+            LazyVStack(spacing: 0) {
+                ForEach(Array(vm.filteredEmails.enumerated()), id: \.element.id) { index, email in
+                    VStack(spacing: 0) {
+                        EmailRowView(email: email)
+                            .onTapGesture {
+                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                vm.markAsRead(email)
+                                showEmailDetail = email
+                            }
+                        if index < vm.filteredEmails.count - 1 {
+                            Divider()
+                                .background(Theme.Colors.separator)
+                                .padding(.leading, 76)
                         }
+                    }
                 }
             }
             .padding(.top, Theme.Spacing.xs)
+        }
+        .refreshable {
+            await vm.loadEmails()
         }
     }
 

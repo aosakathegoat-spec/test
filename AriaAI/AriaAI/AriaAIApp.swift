@@ -2,22 +2,21 @@ import SwiftUI
 
 @main
 struct AriaAIApp: App {
-    @StateObject private var appState = AppState.shared
+    @StateObject private var appState  = AppState.shared
+    @StateObject private var authService = AuthService.shared
 
-    init() {
-        configureAppearance()
-    }
+    init() { configureAppearance() }
 
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environmentObject(appState)
+                .environmentObject(authService)
                 .preferredColorScheme(.dark)
         }
     }
 
     private func configureAppearance() {
-        // Navigation bar
         let navAppearance = UINavigationBarAppearance()
         navAppearance.configureWithTransparentBackground()
         navAppearance.titleTextAttributes = [
@@ -33,14 +32,9 @@ struct AriaAIApp: App {
         UINavigationBar.appearance().scrollEdgeAppearance = navAppearance
         UINavigationBar.appearance().tintColor = UIColor(Color(hex: "#4F8EF7"))
 
-        // Tab bar - hidden (we use custom)
         UITabBar.appearance().isHidden = true
-
-        // Table view
-        UITableView.appearance().backgroundColor = .clear
+        UITableView.appearance().backgroundColor     = .clear
         UITableViewCell.appearance().backgroundColor = .clear
-
-        // Text field
         UITextField.appearance().tintColor = UIColor(Color(hex: "#4F8EF7"))
         UITextView.appearance().tintColor  = UIColor(Color(hex: "#4F8EF7"))
     }

@@ -40,7 +40,7 @@ actor AIService {
         AsyncThrowingStream { continuation in
             Task {
                 do {
-                    let key = Constants.API.key
+                    let key = AuthService.shared.apiKey
                     guard !key.isEmpty else { throw AIError.noAPIKey }
                     if !images.isEmpty && !plan.canAnalyzeImages { throw AIError.imageNotSupported }
 
@@ -110,19 +110,20 @@ actor AIService {
         systemPrompt: String = Constants.SystemPrompt.aria,
         images: [UIImage] = []
     ) async throws -> (String, TokenUsageSnapshot) {
-        let key = Constants.API.key
+        let key = AuthService.shared.apiKey
         guard !key.isEmpty else { throw AIError.noAPIKey }
 
-        var request = try buildRequest(messages: messages, systemPrompt: systemPrompt, images: images)
-        // Override stream to false
-        var body = try JSONDecoder().decode([String: AnyDecodable].self, from: request.httpBody ?? Data())
-        request.httpBody = try {
-            var d = try JSONSerialization.jsonObject(with: request.httpBody ?? Data()) as? [String: Any] ?? [:]
-            d["stream"] = false
-            return try JSONSerialization.data(withJSONObject: d)
-        }()
-
-        let (data, _) = try await session.data(for: request)
+        // Build with stream=false so the request body is correct from the start
+        let request = try buildRequest(
+            messages: messages, systemPrompt: systemPrompt, images: images, stream: false
+        )
+        let (data, response) = try await session.data(for: request)
+        guard let http = response as? HTTPURLResponse else { throw AIError.networkError("Invalid response") }
+        if http.statusCode == 401 { throw AIError.noAPIKey }
+        guard http.statusCode == 200 else {
+            let body = String(data: data, encoding: .utf8) ?? ""
+            throw AIError.networkError("HTTP \(http.statusCode): \(body)")
+        }
 
         struct NonStreamResponse: Decodable {
             let content: [TextContent]
@@ -157,12 +158,13 @@ actor AIService {
     private func buildRequest(
         messages: [Message],
         systemPrompt: String,
-        images: [UIImage]
+        images: [UIImage],
+        stream: Bool = true
     ) throws -> URLRequest {
         var urlRequest = URLRequest(url: URL(string: Constants.API.messagesURL)!)
         urlRequest.httpMethod = "POST"
-        urlRequest.setValue("application/json",       forHTTPHeaderField: "Content-Type")
-        urlRequest.setValue(Constants.API.key,        forHTTPHeaderField: "x-api-key")
+        urlRequest.setValue("application/json",        forHTTPHeaderField: "Content-Type")
+        urlRequest.setValue(AuthService.shared.apiKey, forHTTPHeaderField: "x-api-key")
         urlRequest.setValue(Constants.API.version,    forHTTPHeaderField: "anthropic-version")
         urlRequest.setValue(Constants.API.betaHeaders, forHTTPHeaderField: "anthropic-beta")
 
@@ -217,7 +219,7 @@ actor AIService {
             "max_tokens": Constants.API.maxTokens,
             "system": systemBlocks,
             "messages": apiMessages,
-            "stream": true
+            "stream": stream
         ]
 
         urlRequest.httpBody = try JSONSerialization.data(withJSONObject: body)

@@ -2,9 +2,9 @@ import Foundation
 
 enum Constants {
     enum API {
-        static var key: String {
-            UserDefaults.standard.string(forKey: UserDefaultsKeys.apiKey) ?? ""
-        }
+        // Key is now managed by AuthService / KeychainService
+        // Use AuthService.shared.apiKey at call sites
+        static var key: String { AuthService.shared.apiKey }
         static let messagesURL = "https://api.anthropic.com/v1/messages"
         static let model = "claude-haiku-4-5-20251001"
         static let version = "2023-06-01"

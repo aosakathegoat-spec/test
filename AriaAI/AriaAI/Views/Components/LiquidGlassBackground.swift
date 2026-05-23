@@ -1,107 +1,101 @@
 import SwiftUI
 
+// MARK: - Main app background
 struct LiquidGlassBackground: View {
-    @State private var animate = false
+    @State private var phase = false
 
     var body: some View {
         ZStack {
-            // Base deep background
-            Color(hex: "#060A18")
-                .ignoresSafeArea()
+            // Base — near-black midnight
+            Color(hex: "#07091A").ignoresSafeArea()
 
-            // Primary ambient orb - top left
-            Circle()
-                .fill(
-                    RadialGradient(
-                        colors: [Color(hex: "#3B6EF0").opacity(0.35), .clear],
-                        center: .center, startRadius: 0, endRadius: 200
-                    )
-                )
-                .frame(width: 400, height: 400)
-                .offset(x: animate ? -80 : -120, y: animate ? -180 : -220)
-                .blur(radius: 60)
-                .animation(
-                    .easeInOut(duration: 8).repeatForever(autoreverses: true),
-                    value: animate
-                )
+            // Top-left cool orb
+            ellipseOrb(
+                color: Color(hex: "#2563EB"),
+                opacity: phase ? 0.22 : 0.14,
+                width: 380, height: 320,
+                offset: CGSize(width: -100, height: -240),
+                blur: 90,
+                duration: 9
+            )
 
-            // Secondary orb - bottom right
-            Circle()
-                .fill(
-                    RadialGradient(
-                        colors: [Color(hex: "#8B4FD8").opacity(0.3), .clear],
-                        center: .center, startRadius: 0, endRadius: 180
-                    )
-                )
-                .frame(width: 360, height: 360)
-                .offset(x: animate ? 140 : 100, y: animate ? 260 : 220)
-                .blur(radius: 70)
-                .animation(
-                    .easeInOut(duration: 10).repeatForever(autoreverses: true),
-                    value: animate
-                )
+            // Bottom-right warm-purple orb
+            ellipseOrb(
+                color: Color(hex: "#7C3AED"),
+                opacity: phase ? 0.18 : 0.11,
+                width: 340, height: 300,
+                offset: CGSize(width: 150, height: 280),
+                blur: 80,
+                duration: 11
+            )
 
-            // Accent orb - center
-            Circle()
-                .fill(
-                    RadialGradient(
-                        colors: [Color(hex: "#0EA5E9").opacity(0.15), .clear],
-                        center: .center, startRadius: 0, endRadius: 150
-                    )
-                )
-                .frame(width: 300, height: 300)
-                .offset(x: animate ? 20 : -30, y: animate ? 60 : 100)
-                .blur(radius: 80)
-                .animation(
-                    .easeInOut(duration: 12).repeatForever(autoreverses: true),
-                    value: animate
-                )
+            // Centre accent — subtle cyan
+            ellipseOrb(
+                color: Color(hex: "#0891B2"),
+                opacity: phase ? 0.10 : 0.06,
+                width: 260, height: 220,
+                offset: CGSize(width: 30, height: 40),
+                blur: 100,
+                duration: 14
+            )
 
-            // Noise texture overlay for glass feel
+            // Frutiger Aero — subtle specular grain
             Rectangle()
-                .fill(Color.white.opacity(0.015))
+                .fill(Color.white.opacity(0.012))
                 .ignoresSafeArea()
                 .blendMode(.overlay)
         }
-        .onAppear { animate = true }
+        .onAppear { withAnimation(.easeInOut(duration: 6).repeatForever(autoreverses: true)) { phase = true } }
+    }
+
+    private func ellipseOrb(
+        color: Color, opacity: Double,
+        width: CGFloat, height: CGFloat,
+        offset: CGSize, blur: CGFloat, duration: Double
+    ) -> some View {
+        Ellipse()
+            .fill(color.opacity(opacity))
+            .frame(width: width, height: height)
+            .offset(offset)
+            .blur(radius: blur)
+            .animation(.easeInOut(duration: duration).repeatForever(autoreverses: true), value: phase)
     }
 }
 
-// Compact glass background for sheets
+// MARK: - Sheet background
 struct SheetGlassBackground: View {
     var body: some View {
         ZStack {
-            Color(hex: "#0A0F1E").ignoresSafeArea()
+            Color(hex: "#080C1E").ignoresSafeArea()
             LinearGradient(
-                colors: [
-                    Color(hex: "#1A1040").opacity(0.6),
-                    Color(hex: "#0A1528").opacity(0.4)
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
+                colors: [Color(hex: "#1A1040").opacity(0.5), .clear],
+                startPoint: .topLeading, endPoint: .bottomTrailing
             )
             .ignoresSafeArea()
         }
     }
 }
 
-// Reusable glass card with gradient border
+// MARK: - Reusable glass card
 struct AriaGlassCard<Content: View>: View {
     let content: Content
-    var cornerRadius: CGFloat = Theme.Glass.cornerRadius
-    var padding: CGFloat = Theme.Spacing.md
-    var gradientBorder: Bool = true
+    var cornerRadius: CGFloat   = Theme.Glass.cornerRadius
+    var padding: CGFloat        = Theme.Spacing.md
+    var gradientBorder: Bool    = true
+    var glowColor: Color?       = nil
 
     init(
         cornerRadius: CGFloat = Theme.Glass.cornerRadius,
         padding: CGFloat = Theme.Spacing.md,
         gradientBorder: Bool = true,
+        glowColor: Color? = nil,
         @ViewBuilder content: () -> Content
     ) {
-        self.cornerRadius = cornerRadius
-        self.padding = padding
+        self.cornerRadius   = cornerRadius
+        self.padding        = padding
         self.gradientBorder = gradientBorder
-        self.content = content()
+        self.glowColor      = glowColor
+        self.content        = content()
     }
 
     var body: some View {
@@ -117,7 +111,7 @@ struct AriaGlassCard<Content: View>: View {
                     RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                         .stroke(
                             LinearGradient(
-                                colors: [.white.opacity(0.22), .white.opacity(0.05)],
+                                colors: [.white.opacity(0.20), .white.opacity(0.04)],
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             ),
@@ -125,11 +119,14 @@ struct AriaGlassCard<Content: View>: View {
                         )
                 }
             }
-            .shadow(color: .black.opacity(0.3), radius: 16, x: 0, y: 8)
+            .shadow(
+                color: glowColor?.opacity(0.18) ?? .black.opacity(0.22),
+                radius: 14, x: 0, y: 7
+            )
     }
 }
 
-// Pill badge
+// MARK: - Pill badge
 struct GlassBadge: View {
     let text: String
     var color: Color = Theme.Colors.primary
@@ -140,13 +137,13 @@ struct GlassBadge: View {
             .foregroundStyle(color)
             .padding(.horizontal, 10)
             .padding(.vertical, 4)
-            .background(color.opacity(0.15))
+            .background(color.opacity(0.14))
             .clipShape(Capsule())
-            .overlay(Capsule().stroke(color.opacity(0.3), lineWidth: 1))
+            .overlay(Capsule().stroke(color.opacity(0.28), lineWidth: 1))
     }
 }
 
-// Gradient button
+// MARK: - Gradient CTA button
 struct GradientButton: View {
     let title: String
     let gradient: LinearGradient
@@ -155,13 +152,10 @@ struct GradientButton: View {
     var fullWidth = true
 
     var body: some View {
-        Button(action: action) {
+        Button(action: { UIImpactFeedbackGenerator(style: .medium).impactOccurred(); action() }) {
             HStack(spacing: Theme.Spacing.xs) {
                 if isLoading {
-                    ProgressView()
-                        .progressViewStyle(.circular)
-                        .tint(.white)
-                        .scaleEffect(0.8)
+                    ProgressView().progressViewStyle(.circular).tint(.white).scaleEffect(0.8)
                 } else {
                     Text(title)
                         .font(Theme.Typography.body(.semibold))
@@ -174,7 +168,7 @@ struct GradientButton: View {
         }
         .background(gradient)
         .clipShape(RoundedRectangle(cornerRadius: Theme.Glass.cornerRadiusSm, style: .continuous))
-        .shadow(color: .black.opacity(0.2), radius: 8, x: 0, y: 4)
+        .shadow(color: .black.opacity(0.18), radius: 8, x: 0, y: 4)
         .disabled(isLoading)
     }
 }
