@@ -5,12 +5,6 @@ struct TokenUsageBar: View {
     let plan: SubscriptionPlan
     var compact: Bool = false
 
-    private var inputWidth: CGFloat {
-        CGFloat(usage.inputPercent)
-    }
-    private var outputWidth: CGFloat {
-        CGFloat(usage.outputPercent)
-    }
     private var overallPercent: Double {
         usage.usagePercent(limit: plan.tokenLimit)
     }

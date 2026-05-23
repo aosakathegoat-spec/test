@@ -6,7 +6,6 @@ struct VoiceButton: View {
     let onTap: () -> Void
 
     @State private var pulse = false
-    @State private var wavePhase: CGFloat = 0
 
     var body: some View {
         Button(action: onTap) {

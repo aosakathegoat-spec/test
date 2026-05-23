@@ -59,9 +59,9 @@ struct TokenUsage: Codable {
         components.hour   = Constants.ResetSchedule.hour
         components.minute = 0
         components.second = 0
-        let todayReset = cal.date(from: components)!
+        guard let todayReset = cal.date(from: components) else { return now.addingTimeInterval(86400) }
         // If we're already past 8 AM today, the next reset is tomorrow 8 AM
-        return now < todayReset ? todayReset : cal.date(byAdding: .day, value: 1, to: todayReset)!
+        return now < todayReset ? todayReset : cal.date(byAdding: .day, value: 1, to: todayReset) ?? todayReset.addingTimeInterval(86400)
     }
 
     var timeUntilReset: String {

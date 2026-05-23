@@ -67,7 +67,9 @@ class EmailService: ObservableObject {
 
     // MARK: - OAuth (Settings re-auth)
     func authenticate() async throws {
-        var components = URLComponents(string: Constants.Gmail.authURL)!
+        guard var components = URLComponents(string: Constants.Gmail.authURL) else {
+            throw EmailError.authFailed("Invalid auth URL")
+        }
         components.queryItems = [
             .init(name: "client_id",     value: Constants.Gmail.clientID),
             .init(name: "redirect_uri",  value: Constants.Gmail.redirectURI),
@@ -179,7 +181,9 @@ class EmailService: ObservableObject {
     func fetchInbox(maxResults: Int = 30) async throws -> [EmailMessage] {
         let token = try await validToken()
 
-        var listURL = URLComponents(string: "\(Constants.Gmail.apiBase)/messages")!
+        guard var listURL = URLComponents(string: "\(Constants.Gmail.apiBase)/messages") else {
+            throw EmailError.fetchFailed("Invalid API URL")
+        }
         listURL.queryItems = [
             .init(name: "labelIds",   value: "INBOX"),
             .init(name: "maxResults", value: "\(maxResults)")

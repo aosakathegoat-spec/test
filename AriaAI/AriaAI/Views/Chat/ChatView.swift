@@ -122,7 +122,8 @@ struct ChatView: View {
                 .padding(.vertical, Theme.Spacing.sm)
             }
             .scrollDismissesKeyboard(.interactively)
-            .onChange(of: vm.scrollToBottom) { _, _ in
+            .onChange(of: vm.scrollToBottom) { _, newValue in
+                guard newValue else { return }
                 withAnimation(Theme.Animation.smooth) {
                     proxy.scrollTo("bottom", anchor: .bottom)
                 }
