@@ -60,6 +60,7 @@ class ChatViewModel: ObservableObject {
         let userMessage = Message(role: .user, content: text, images: images.map { AttachedImage(image: $0) })
         messages.append(userMessage)
         scrollToBottom = true
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
 
         // Add streaming assistant placeholder
         let assistantID = UUID()
@@ -334,6 +335,12 @@ class ChatViewModel: ObservableObject {
         initialToolCalls: [(id: String, name: String, input: [String: Any])],
         assistantID: UUID
     ) async throws {
+        defer {
+            if let idx = messages.firstIndex(where: { $0.id == assistantID }) {
+                messages[idx].isStreaming = false
+            }
+        }
+
         var rawMessages = buildAPIMessages(from: windowedHistory)
         var currentText = initialText
         var pendingCalls = initialToolCalls
@@ -475,6 +482,7 @@ class ChatViewModel: ObservableObject {
     func cancelStreaming() {
         activeStreamTask?.cancel()
         activeStreamTask = nil
+        cancelSMSSend()
         if let id = streamingMessageID,
            let idx = messages.firstIndex(where: { $0.id == id }) {
             if messages[idx].content.isEmpty {

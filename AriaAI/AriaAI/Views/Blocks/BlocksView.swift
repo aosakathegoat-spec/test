@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct BlocksView: View {
     @StateObject private var vm = BlocksViewModel()
@@ -165,7 +166,10 @@ struct AutomationCard: View {
                 .scaleEffect(0.85)
                 .frame(width: 34, height: 34)
         } else {
-            Button(action: onRun) {
+            Button {
+                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                onRun()
+            } label: {
                 Image(systemName: "play.fill")
                     .font(.system(size: 13, weight: .bold))
                     .foregroundStyle(.white)
@@ -271,6 +275,7 @@ struct RunLogSheet: View {
         }
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
+        .interactiveDismissDisabled(vm.isRunning && vm.runningID == automation.id)
     }
 
     @ViewBuilder

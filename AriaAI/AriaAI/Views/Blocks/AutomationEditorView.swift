@@ -243,6 +243,7 @@ struct BlockConfigSheet: View {
 
                 Section {
                     variableHints
+                        .listRowBackground(Theme.Colors.surface)
                 } header: {
                     Text("AVAILABLE VARIABLES")
                         .font(Theme.Typography.caption(.semibold))

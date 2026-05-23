@@ -1,5 +1,6 @@
 import SwiftUI
 import PhotosUI
+import UIKit
 
 struct ChatView: View {
     @StateObject private var vm = ChatViewModel()
@@ -22,6 +23,7 @@ struct ChatView: View {
         .sheet(isPresented: $showSessions) { sessionSheet }
         .sheet(item: $vm.pendingSMSConfirmation) { sms in
             SMSConfirmationSheet(sms: sms, vm: vm)
+                .onDisappear { vm.cancelSMSSend() }
         }
         .onChange(of: vm.isVoiceActive) { _, active in
             if active { inputFocused = false }
@@ -562,6 +564,7 @@ struct SMSConfirmationSheet: View {
             // Actions
             VStack(spacing: Theme.Spacing.sm) {
                 Button {
+                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                     Task { await vm.confirmSMSSend() }
                 } label: {
                     Label("Open SMS Composer", systemImage: "arrow.up.message.fill")
@@ -575,6 +578,7 @@ struct SMSConfirmationSheet: View {
                 .buttonStyle(.plain)
 
                 Button {
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
                     vm.cancelSMSSend()
                 } label: {
                     Text("Cancel")

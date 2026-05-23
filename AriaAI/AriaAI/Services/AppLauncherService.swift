@@ -14,7 +14,7 @@ final class AppLauncherService {
 
     // Built-in iOS apps — always present, no canOpenURL check needed
     private let systemApps: [AppInfo] = [
-        .init(id: "safari",   name: "Safari",    openURL: "https://",                         category: "browser"),
+        .init(id: "safari",   name: "Safari",    openURL: "https://www.apple.com",            category: "browser"),
         .init(id: "maps",     name: "Maps",      openURL: "maps://",                          category: "navigation"),
         .init(id: "phone",    name: "Phone",     openURL: "tel://",                           category: "communication"),
         .init(id: "messages", name: "Messages",  openURL: "sms://",                           category: "communication"),
