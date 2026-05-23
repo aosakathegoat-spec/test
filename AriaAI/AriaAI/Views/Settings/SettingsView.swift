@@ -301,7 +301,7 @@ struct SettingsView: View {
                 VStack(spacing: 0) {
                     settingsRowStatic(icon: "sparkle",    label: "Version",    value: "1.0.0")
                     Divider().opacity(0.15).padding(.vertical, Theme.Spacing.xs)
-                    settingsRowStatic(icon: "cpu",        label: "Model",      value: "Claude Haiku")
+                    settingsRowStatic(icon: "cpu",        label: "Model",      value: "claude-haiku-4-5")
                     Divider().opacity(0.15).padding(.vertical, Theme.Spacing.xs)
                     settingsRowStatic(icon: "building.2", label: "Powered by", value: "Anthropic")
                 }

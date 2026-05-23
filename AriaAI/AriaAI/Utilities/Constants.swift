@@ -6,7 +6,7 @@ enum Constants {
         // Use AuthService.shared.apiKey at call sites
         static var key: String { AuthService.shared.apiKey }
         static let messagesURL = "https://api.anthropic.com/v1/messages"
-        static let model = "claude-haiku-4-5-20251001"
+        static let model = "claude-haiku-4-5"
         static let version = "2023-06-01"
         static let betaHeaders = "prompt-caching-2024-07-31"
         static let maxTokens = 1024
@@ -17,10 +17,10 @@ enum Constants {
         static let proMonthly   = "com.aria.assistant.pro.monthly"
         static let ultraMonthly = "com.aria.assistant.ultra.monthly"
 
-        // Pricing — after Apple 30% cut + Haiku API costs, margins are:
-        //   Core  $9.99/mo:  ~$5.37 profit  (60K/day, API ~$1.62/mo)
-        //   Pro  $22.99/mo: ~$10.69 profit (200K/day, API ~$5.40/mo)
-        //   Ultra $44.99/mo: ~$12.59 profit (700K/day, API ~$18.90/mo)
+        // Pricing — after Apple 30% cut + Haiku 4.5 API costs, margins are:
+        //   Core  $9.99/mo:  ~$5.69 profit  (60K/day, API ~$1.30/mo  @ mostly cached)
+        //   Pro  $22.99/mo: ~$11.59 profit (200K/day, API ~$4.40/mo  @ mostly cached)
+        //   Ultra $44.99/mo: ~$16.99 profit (700K/day, API ~$14.50/mo @ mostly cached)
         static let corePriceDisplay  = "$9.99/mo"
         static let proPriceDisplay   = "$22.99/mo"
         static let ultraPriceDisplay = "$44.99/mo"
@@ -43,11 +43,11 @@ enum Constants {
         static let timezone: String = "America/Los_Angeles"  // PST/PDT
     }
 
-    // Haiku pricing: input $0.80/MTok, output $1.00/MTok, cached $0.08/MTok
+    // Haiku 4.5 pricing: input $1.00/MTok, output $5.00/MTok, cached read $0.10/MTok
     enum TokenCost {
-        static let inputPerToken:  Double = 0.000_000_8
-        static let outputPerToken: Double = 0.000_001_0
-        static let cachedPerToken: Double = 0.000_000_08
+        static let inputPerToken:  Double = 0.000_001_0
+        static let outputPerToken: Double = 0.000_005_0
+        static let cachedPerToken: Double = 0.000_000_1
     }
 
     enum UserDefaultsKeys {
