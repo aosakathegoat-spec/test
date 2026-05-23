@@ -25,7 +25,7 @@ struct SettingsView: View {
                     aboutSection
                 }
                 .padding(Theme.Spacing.md)
-                .padding(.bottom, 100)
+                .padding(.bottom, Theme.Size.tabBarHeight)
             }
         }
         .sheet(isPresented: $showPricing) { PricingView() }

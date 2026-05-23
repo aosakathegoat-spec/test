@@ -1,5 +1,4 @@
 import Foundation
-import UIKit
 
 enum AIError: LocalizedError {
     case noAPIKey
@@ -34,7 +33,6 @@ actor AIService {
     func streamMessage(
         messages: [Message],
         systemPrompt: String = Constants.SystemPrompt.aria,
-        images: [UIImage] = [],
         plan: SubscriptionPlan
     ) -> AsyncThrowingStream<StreamEvent, Error> {
         AsyncThrowingStream { continuation in
@@ -42,12 +40,12 @@ actor AIService {
                 do {
                     let key = AuthService.shared.apiKey
                     guard !key.isEmpty else { throw AIError.noAPIKey }
-                    if !images.isEmpty && !plan.canAnalyzeImages { throw AIError.imageNotSupported }
+                    let hasImages = messages.contains { $0.hasImages }
+                    if hasImages && !plan.canAnalyzeImages { throw AIError.imageNotSupported }
 
                     let request = try buildRequest(
                         messages: messages,
-                        systemPrompt: systemPrompt,
-                        images: images
+                        systemPrompt: systemPrompt
                     )
 
                     let (asyncBytes, response) = try await session.bytes(for: request)
@@ -107,15 +105,13 @@ actor AIService {
     // Non-streaming for briefings and background tasks
     func sendMessage(
         messages: [Message],
-        systemPrompt: String = Constants.SystemPrompt.aria,
-        images: [UIImage] = []
+        systemPrompt: String = Constants.SystemPrompt.aria
     ) async throws -> (String, TokenUsageSnapshot) {
         let key = AuthService.shared.apiKey
         guard !key.isEmpty else { throw AIError.noAPIKey }
 
-        // Build with stream=false so the request body is correct from the start
         let request = try buildRequest(
-            messages: messages, systemPrompt: systemPrompt, images: images, stream: false
+            messages: messages, systemPrompt: systemPrompt, stream: false
         )
         let (data, response) = try await session.data(for: request)
         guard let http = response as? HTTPURLResponse else { throw AIError.networkError("Invalid response") }
@@ -158,7 +154,6 @@ actor AIService {
     private func buildRequest(
         messages: [Message],
         systemPrompt: String,
-        images: [UIImage],
         stream: Bool = true
     ) throws -> URLRequest {
         var urlRequest = URLRequest(url: URL(string: Constants.API.messagesURL)!)
@@ -181,20 +176,8 @@ actor AIService {
             guard msg.role != .system else { continue }
             var contentBlocks: [[String: Any]] = []
 
-            // Attach images to the last user message
-            if msg.isUser && i == messages.indices.last(where: { messages[$0].isUser }) {
-                for image in images {
-                    if let b64 = image.base64EncodedString() {
-                        contentBlocks.append([
-                            "type": "image",
-                            "source": [
-                                "type": "base64",
-                                "media_type": "image/jpeg",
-                                "data": b64
-                            ]
-                        ])
-                    }
-                }
+            // Attach stored images for any user message that has them
+            if msg.isUser && msg.hasImages {
                 for img in msg.images {
                     contentBlocks.append([
                         "type": "image",

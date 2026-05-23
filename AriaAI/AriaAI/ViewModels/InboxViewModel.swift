@@ -51,7 +51,6 @@ class InboxViewModel: ObservableObject {
         do {
             try await emailService.sendEmail(draftEmail)
             UINotificationFeedbackGenerator().notificationOccurred(.success)
-            sendSuccess = true
             draftEmail = DraftEmail()
             showCompose = false
         } catch {

@@ -129,7 +129,8 @@ struct ChatView: View {
                 }
                 vm.scrollToBottom = false
             }
-            .onChange(of: vm.messages.count) { _, _ in
+            .onChange(of: vm.messages.count) { oldCount, newCount in
+                guard newCount > oldCount else { return }
                 withAnimation { proxy.scrollTo("bottom", anchor: .bottom) }
             }
         }

@@ -56,10 +56,14 @@ class EmailService: ObservableObject {
     }
 
     // MARK: - Called when Google sign-in already happened via LoginView
-    func storeTokensFromLogin(accessToken: String) async {
+    func storeTokensFromLogin(accessToken: String, refreshToken: String?) async {
         self.accessToken = accessToken
-        tokenExpiry = Date().addingTimeInterval(3500)
         KeychainService.set(accessToken, for: TokenKeys.access)
+        if let rt = refreshToken, !rt.isEmpty {
+            self.refreshToken = rt
+            KeychainService.set(rt, for: TokenKeys.refresh)
+        }
+        tokenExpiry = Date().addingTimeInterval(3500)
         UserDefaults.standard.set(tokenExpiry, forKey: TokenKeys.expiry)
         isAuthenticated = true
         await fetchUserEmail()

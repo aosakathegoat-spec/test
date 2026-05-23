@@ -144,17 +144,30 @@ extension GmailMessage {
         if let data = payload.body?.data, !data.isEmpty {
             return decodeBase64(data)
         }
-        for part in payload.parts ?? [] {
-            if part.mimeType == "text/plain", let data = part.body?.data {
+        if let text = findBodyText(in: payload.parts ?? []) {
+            return text
+        }
+        return snippet ?? ""
+    }
+
+    private func findBodyText(in parts: [GmailPart]) -> String? {
+        // Prefer text/plain, then text/html, then recurse into nested multipart
+        for part in parts {
+            if part.mimeType == "text/plain", let data = part.body?.data, !data.isEmpty {
                 return decodeBase64(data)
             }
         }
-        for part in payload.parts ?? [] {
-            if part.mimeType == "text/html", let data = part.body?.data {
+        for part in parts {
+            if part.mimeType == "text/html", let data = part.body?.data, !data.isEmpty {
                 return decodeBase64(data).stripHTML()
             }
         }
-        return snippet ?? ""
+        for part in parts {
+            if part.mimeType?.hasPrefix("multipart/") == true, let nested = part.parts {
+                if let text = findBodyText(in: nested) { return text }
+            }
+        }
+        return nil
     }
 
     private func decodeBase64(_ base64: String) -> String {

@@ -263,9 +263,8 @@ struct GoogleSignInWebView: View {
             }
 
             // Exchange code for tokens and profile
-            let (accessToken, profile) = try await exchangeAndFetchProfile(code: code)
-            // Store refresh token in Gmail service for later inbox use
-            await EmailService.shared.storeTokensFromLogin(accessToken: accessToken)
+            let (accessToken, refreshToken, profile) = try await exchangeAndFetchProfile(code: code)
+            await EmailService.shared.storeTokensFromLogin(accessToken: accessToken, refreshToken: refreshToken)
             auth.signInWithGoogle(id: profile.id, name: profile.name, email: profile.email)
         } catch {
             let asError = error as? ASAuthorizationError
@@ -277,7 +276,7 @@ struct GoogleSignInWebView: View {
         isPresented = false
     }
 
-    private func exchangeAndFetchProfile(code: String) async throws -> (String, GoogleProfile) {
+    private func exchangeAndFetchProfile(code: String) async throws -> (accessToken: String, refreshToken: String?, profile: GoogleProfile) {
         // Exchange code for tokens
         var tokenReq = URLRequest(url: URL(string: Constants.Gmail.tokenURL)!)
         tokenReq.httpMethod = "POST"
@@ -300,7 +299,7 @@ struct GoogleSignInWebView: View {
         let (profileData, _) = try await URLSession.shared.data(for: profileReq)
         let profile = try JSONDecoder().decode(GoogleProfile.self, from: profileData)
 
-        return (tokenResp.accessToken, profile)
+        return (tokenResp.accessToken, tokenResp.refreshToken, profile)
     }
 }
 

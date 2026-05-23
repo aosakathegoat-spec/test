@@ -68,7 +68,6 @@ class ChatViewModel: ObservableObject {
             do {
                 let stream = await AIService.shared.streamMessage(
                     messages: windowedHistory,
-                    images: images,
                     plan: appState.plan
                 )
 
