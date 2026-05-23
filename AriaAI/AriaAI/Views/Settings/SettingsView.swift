@@ -91,6 +91,8 @@ struct SettingsView: View {
                             Text(vm.plan.displayName)
                                 .font(Theme.Typography.title3(.bold))
                                 .foregroundStyle(vm.plan.accentColor)
+                                .animation(Theme.Animation.spring, value: vm.plan)
+                                .contentTransition(.interpolate)
                         }
                         Spacer()
                         if vm.plan != .ultra {
@@ -310,6 +312,7 @@ struct SettingsView: View {
             }
             .disabled(!vm.plan.hasMorningBriefing)
             .opacity(vm.plan.hasMorningBriefing ? 1 : 0.5)
+            .animation(Theme.Animation.smooth, value: vm.plan.hasMorningBriefing)
             if !vm.plan.hasMorningBriefing {
                 Text("Upgrade to Pro or Ultra to access morning briefings.")
                     .font(Theme.Typography.caption())

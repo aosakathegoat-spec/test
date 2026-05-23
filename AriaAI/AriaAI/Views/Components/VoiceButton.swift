@@ -23,6 +23,7 @@ struct VoiceButton: View {
                                 value: pulse
                             )
                     }
+                    .transition(.opacity.animation(.easeOut(duration: 0.3)))
                 }
 
                 // Glow when speaking
@@ -32,6 +33,7 @@ struct VoiceButton: View {
                         .frame(width: 60, height: 60)
                         .scaleEffect(pulse ? 1.2 : 1.0)
                         .animation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true), value: pulse)
+                        .transition(.opacity.animation(.easeOut(duration: 0.3)))
                 }
 
                 // Main button

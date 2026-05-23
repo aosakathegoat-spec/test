@@ -103,6 +103,7 @@ class ChatViewModel: ObservableObject {
                     }
                 }
             }
+            guard !Task.isCancelled else { return }
             isStreaming = false
             streamingMessageID = nil
             activeStreamTask = nil
@@ -227,6 +228,9 @@ class ChatViewModel: ObservableObject {
     func deleteSession(_ session: ChatSession) {
         conversations.removeAll { $0.id == session.id }
         storeSessions()
+        if session.id == currentSessionID {
+            newConversation()
+        }
     }
 
     var sessionTitle: String {

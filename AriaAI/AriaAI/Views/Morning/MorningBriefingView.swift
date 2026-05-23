@@ -125,7 +125,7 @@ struct MorningBriefingView: View {
                         .frame(width: 60, height: 60)
                         .rotationEffect(.degrees(vm.spinAngle))
                         .onAppear {
-                            vm.spinAngle = 0
+                            guard vm.spinAngle == 0 else { return }
                             withAnimation(.linear(duration: 1).repeatForever(autoreverses: false)) {
                                 vm.spinAngle = 360
                             }
@@ -370,6 +370,7 @@ class MorningBriefingViewModel: ObservableObject {
 
     func generate() async {
         guard let appState, appState.plan.hasMorningBriefing else { return }
+        spinAngle = 0
         isGenerating = true
         do {
             let emails = (try? await EmailService.shared.fetchInbox(maxResults: 10)) ?? []

@@ -113,6 +113,8 @@ class InboxViewModel: ObservableObject {
         do {
             try await emailService.authenticate()
             await loadEmails()
+        } catch EmailError.authCancelled {
+            return
         } catch {
             self.error = error.localizedDescription
         }

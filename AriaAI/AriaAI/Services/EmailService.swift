@@ -7,6 +7,7 @@ enum EmailError: LocalizedError {
     case sendFailed(String)
     case fetchFailed(String)
     case authFailed(String)
+    case authCancelled
     case rateLimited
 
     var errorDescription: String? {
@@ -15,6 +16,7 @@ enum EmailError: LocalizedError {
         case .sendFailed(let m):  return "Failed to send: \(m)"
         case .fetchFailed(let m): return "Failed to load emails: \(m)"
         case .authFailed(let m):  return "Auth failed: \(m)"
+        case .authCancelled:      return nil
         case .rateLimited:        return "Too many requests — please wait a moment."
         }
     }
@@ -90,7 +92,8 @@ class EmailService: ObservableObject {
                 callbackURLScheme: "com.aria.assistant"
             ) { callbackURL, error in
                 if let error {
-                    cont.resume(throwing: EmailError.authFailed(error.localizedDescription))
+                    let cancelled = (error as? ASWebAuthenticationSessionError)?.code == .canceledLogin
+                    cont.resume(throwing: cancelled ? EmailError.authCancelled : EmailError.authFailed(error.localizedDescription))
                     return
                 }
                 guard let callbackURL,

@@ -5,7 +5,6 @@ struct OnboardingView: View {
     @EnvironmentObject private var auth: AuthService
     @State private var currentPage = 0
     @State private var name = ""
-    @State private var isAnimating = false
     @FocusState private var nameFocused: Bool
 
     private let pages: [OnboardingPage] = [
@@ -66,6 +65,7 @@ struct OnboardingView: View {
                             insertion: .move(edge: .trailing).combined(with: .opacity),
                             removal: .move(edge: .leading).combined(with: .opacity)
                         ))
+                        .id("name")
                 }
 
                 Spacer()
@@ -109,40 +109,11 @@ struct OnboardingView: View {
                 .padding(.bottom, Theme.Spacing.xxl)
             }
         }
-        .onAppear { isAnimating = true }
     }
 
     private func featurePage(_ page: OnboardingPage) -> some View {
         VStack(spacing: Theme.Spacing.xl) {
-            // Icon
-            ZStack {
-                Circle()
-                    .fill(
-                        RadialGradient(
-                            colors: [(page.gradient.first ?? Theme.Colors.primary).opacity(0.3), .clear],
-                            center: .center, startRadius: 0, endRadius: 80
-                        )
-                    )
-                    .frame(width: 160, height: 160)
-
-                ZStack {
-                    Circle()
-                        .fill(
-                            LinearGradient(
-                                colors: page.gradient,
-                                startPoint: .topLeading, endPoint: .bottomTrailing
-                            )
-                        )
-                        .frame(width: 100, height: 100)
-
-                    Image(systemName: page.icon)
-                        .font(.system(size: 44, weight: .semibold))
-                        .foregroundStyle(.white)
-                }
-                .shadow(color: (page.gradient.first ?? Theme.Colors.primary).opacity(0.5), radius: 20, x: 0, y: 8)
-                .scaleEffect(isAnimating ? 1 : 0.7)
-                .animation(Theme.Animation.spring.delay(0.1), value: isAnimating)
-            }
+            OnboardingIconView(page: page)
 
             VStack(spacing: Theme.Spacing.sm) {
                 Text(page.title)
@@ -235,4 +206,41 @@ struct OnboardingPage {
     let gradient: [Color]
     let title: String
     let subtitle: String
+}
+
+private struct OnboardingIconView: View {
+    let page: OnboardingPage
+    @State private var appeared = false
+
+    var body: some View {
+        ZStack {
+            Circle()
+                .fill(
+                    RadialGradient(
+                        colors: [(page.gradient.first ?? Theme.Colors.primary).opacity(0.3), .clear],
+                        center: .center, startRadius: 0, endRadius: 80
+                    )
+                )
+                .frame(width: 160, height: 160)
+
+            ZStack {
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: page.gradient,
+                            startPoint: .topLeading, endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 100, height: 100)
+
+                Image(systemName: page.icon)
+                    .font(.system(size: 44, weight: .semibold))
+                    .foregroundStyle(.white)
+            }
+            .shadow(color: (page.gradient.first ?? Theme.Colors.primary).opacity(0.5), radius: 20, x: 0, y: 8)
+            .scaleEffect(appeared ? 1 : 0.7)
+            .animation(Theme.Animation.spring.delay(0.1), value: appeared)
+        }
+        .onAppear { appeared = true }
+    }
 }
