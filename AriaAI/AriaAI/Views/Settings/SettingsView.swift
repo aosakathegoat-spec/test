@@ -5,6 +5,7 @@ struct SettingsView: View {
     @StateObject private var vm = SettingsViewModel()
     @ObservedObject private var tokenTracker = TokenTracker.shared
     @ObservedObject private var emailService = EmailService.shared
+    @ObservedObject private var voiceService = VoiceService.shared
     @EnvironmentObject private var appState: AppState
     @EnvironmentObject private var auth: AuthService
     @State private var showPricing = false
@@ -210,7 +211,7 @@ struct SettingsView: View {
                                 .font(Theme.Typography.body())
                                 .foregroundStyle(Theme.Colors.textPrimary)
                             Spacer()
-                            let voice = appState.voiceService.availableVoices
+                            let voice = voiceService.availableVoices
                                 .first { $0.id == vm.selectedVoiceID }?.name
                                 ?? "Default"
                             Text(voice)
@@ -249,7 +250,7 @@ struct SettingsView: View {
                                 .lineLimit(1)
                         }
                         Button("Disconnect Gmail") {
-                            emailService.disconnect()
+                            withAnimation(Theme.Animation.smooth) { emailService.disconnect() }
                         }
                         .font(Theme.Typography.subheadline(.medium))
                         .foregroundStyle(Theme.Colors.error)
@@ -413,7 +414,7 @@ struct SettingsView: View {
             ZStack {
                 SheetGlassBackground()
                 List {
-                    ForEach(appState.voiceService.availableVoices) { voice in
+                    ForEach(voiceService.availableVoices) { voice in
                         Button {
                             vm.saveVoiceSelection(voice.id)
                         } label: {

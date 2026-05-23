@@ -47,6 +47,7 @@ class InboxViewModel: ObservableObject {
             error = "Please fill in To, Subject, and message body."
             return
         }
+        guard !isSending else { return }
         isSending = true
         error = nil
         do {
@@ -66,6 +67,7 @@ class InboxViewModel: ObservableObject {
     }
 
     func generateAIDraft(replyTo email: EmailMessage? = nil) async {
+        guard !isGeneratingDraft else { return }
         guard appState.apiKeySet else {
             error = AIError.noAPIKey.errorDescription
             return

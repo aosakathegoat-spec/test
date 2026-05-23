@@ -170,9 +170,9 @@ struct MorningBriefingView: View {
                     // Play/Stop TTS
                     Button {
                         if voiceService.isSpeaking {
-                            appState.voiceService.stop()
+                            voiceService.stop()
                         } else {
-                            appState.voiceService.speak(text)
+                            voiceService.speak(text)
                         }
                     } label: {
                         HStack(spacing: 6) {
@@ -282,12 +282,15 @@ struct MorningBriefingView: View {
                             .font(Theme.Typography.subheadline(.medium))
                             .foregroundStyle(Theme.Colors.primary)
                     }
+                    .transition(.opacity.combined(with: .move(edge: .top)))
                 } else {
                     Text("Enable to receive a daily morning briefing notification.")
                         .font(Theme.Typography.footnote())
                         .foregroundStyle(Theme.Colors.textTertiary)
+                        .transition(.opacity.combined(with: .move(edge: .top)))
                 }
             }
+            .animation(Theme.Animation.smooth, value: vm.isScheduled)
         }
         .disabled(!tokenTracker.plan.hasMorningBriefing)
         .opacity(tokenTracker.plan.hasMorningBriefing ? 1 : 0.5)

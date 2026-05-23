@@ -134,7 +134,7 @@ struct PricingView: View {
             }
 
             if selectedPlan == .free || selectedPlan == tokenTracker.plan {
-                Button("Continue with \(selectedPlan.displayName)") {
+                Button(selectedPlan == .free ? "Stay on Free" : "Keep \(selectedPlan.displayName)") {
                     dismiss()
                 }
                 .font(Theme.Typography.body(.medium))
@@ -203,6 +203,7 @@ struct PricingView: View {
     }
 
     private func purchase(_ plan: SubscriptionPlan) async {
+        guard !isPurchasing else { return }
         isPurchasing = true
         purchaseError = nil
         do {

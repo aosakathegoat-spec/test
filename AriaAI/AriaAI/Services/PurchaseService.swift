@@ -21,6 +21,7 @@ class PurchaseService: ObservableObject {
     }
 
     func loadProducts() async {
+        guard !isLoading else { return }
         isLoading = true
         defer { isLoading = false }
         do {
