@@ -1,0 +1,29 @@
+#!/bin/sh
+# Display patriot facts
+
+cat << 'EOF'
+
+  ╔══════════════════════════════════════════════════════╗
+  ║           PATRIOT FACTS — TPUSA EDITION              ║
+  ╠══════════════════════════════════════════════════════╣
+  ║                                                      ║
+  ║  • The US Constitution is 235+ years old and still  ║
+  ║    the greatest governing document ever written.    ║
+  ║                                                      ║
+  ║  • The Second Amendment has never been repealed.    ║
+  ║                                                      ║
+  ║  • The United States has the world's largest        ║
+  ║    economy — built on free-market capitalism.       ║
+  ║                                                      ║
+  ║  • The Electoral College protects every state's    ║
+  ║    voice in presidential elections.                 ║
+  ║                                                      ║
+  ║  • TPUSA has chapters on 3,500+ high school and    ║
+  ║    college campuses nationwide.                     ║
+  ║                                                      ║
+  ║  • The First Amendment protects speech the          ║
+  ║    government DISAGREES with most.                  ║
+  ║                                                      ║
+  ╚══════════════════════════════════════════════════════╝
+
+EOF

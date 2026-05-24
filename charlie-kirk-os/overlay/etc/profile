@@ -1,0 +1,15 @@
+export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+export TERM="${TERM:-linux}"
+export HOME="/root"
+export ENV="/root/.ashrc"
+
+for f in /etc/profile.d/*.sh; do
+    [ -r "$f" ] && . "$f"
+done
+
+if [ -f /etc/motd ] && [ "${MOTD_DISPLAYED:-0}" != "1" ]; then
+    export MOTD_DISPLAYED=1
+    echo -e "$(cat /etc/motd)"
+    echo ""
+    kirk-quote
+fi

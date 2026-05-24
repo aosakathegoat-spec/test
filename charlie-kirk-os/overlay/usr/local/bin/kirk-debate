@@ -1,0 +1,42 @@
+#!/bin/sh
+# Debate mode — Kirk style
+
+cat << 'EOF'
+
+  ┌─────────────────────────────────────────────────────┐
+  │              CHARLIE KIRK DEBATE MODE               │
+  │         "Facts Don't Care About Your Feelings"      │
+  └─────────────────────────────────────────────────────┘
+
+  THEM: "Socialism would be better than capitalism."
+
+  KIRK: With what historical evidence? Every socialist
+        experiment has ended in poverty and tyranny.
+        Venezuela had the largest oil reserves in the
+        world — socialism destroyed it in 20 years.
+        FACT. BOOM. Next question.
+
+  ─────────────────────────────────────────────────────
+
+  THEM: "We need more government programs."
+
+  KIRK: Government doesn't CREATE wealth. It REDISTRIBUTES
+        it — after taking its cut. The free market has
+        lifted 1 billion people out of poverty since 1990.
+        Government programs? Still working on poverty since
+        1964. Do the math.
+
+  ─────────────────────────────────────────────────────
+
+  THEM: "Speech should be limited if it's harmful."
+
+  KIRK: Who decides what's harmful? The government?
+        The same government that called civil rights
+        protesters "agitators"? The First Amendment
+        exists precisely for speech the powerful
+        find uncomfortable. Period.
+
+  ─────────────────────────────────────────────────────
+  Run 'kirk-quote' for more ammunition.
+
+EOF

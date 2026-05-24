@@ -1,0 +1,6 @@
+*.img
+*.qcow2
+*.iso
+build/
+*.tar.gz
+*.log

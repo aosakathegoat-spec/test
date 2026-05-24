@@ -1,0 +1,33 @@
+#!/bin/sh
+# Simulated TPUSA news ticker
+
+cat << 'EOF'
+
+  ╔══════════════════════════════════════════════════════╗
+  ║     📰  TPUSA-OS NEWS — FREEDOM PRESS NETWORK  📰   ║
+  ╠══════════════════════════════════════════════════════╣
+  ║                                                      ║
+  ║  [BREAKING] Free market principles continue to       ║
+  ║  outperform central planning — economists shocked    ║
+  ║                                                      ║
+  ║  [CAMPUS] TPUSA chapter launches new free speech    ║
+  ║  event series at 200 universities nationwide         ║
+  ║                                                      ║
+  ║  [ECONOMY] Small businesses report record growth    ║
+  ║  following deregulation push                         ║
+  ║                                                      ║
+  ║  [CONSTITUTION] Second Amendment upheld in          ║
+  ║  landmark Supreme Court ruling                       ║
+  ║                                                      ║
+  ║  [EDUCATION] School choice bill passes state        ║
+  ║  legislature, 50,000 new scholarships created       ║
+  ║                                                      ║
+  ║  [CHARLIE] "The radical left cannot cancel what     ║
+  ║  millions of Americans believe in their hearts"     ║
+  ║                                                      ║
+  ╚══════════════════════════════════════════════════════╝
+
+  System time: $(date)
+  Boot count:  FREEDOM
+
+EOF

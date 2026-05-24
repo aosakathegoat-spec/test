@@ -1,0 +1,25 @@
+#!/bin/sh
+# Display a random Charlie Kirk quote
+
+QUOTES="Socialism ends where property rights begin.
+The radical left wants to cancel America's history — we won't let them.
+America is the greatest experiment in self-governance in the history of the world.
+Free markets have lifted more people out of poverty than any government program.
+The nuclear family is the most powerful anti-poverty program ever created.
+Young Americans are being indoctrinated, not educated.
+Freedom of speech is the foundation of all other freedoms.
+Capitalism creates wealth; socialism redistributes poverty.
+The left doesn't want debate — they want conformity.
+America was founded on the radical idea that people can govern themselves.
+Big government is always the problem, never the solution.
+The Founding Fathers didn't create a democracy — they created a constitutional republic.
+School choice is the civil rights issue of our time.
+The free market is the greatest engine of human prosperity ever devised.
+America's best days are ahead — if we fight for them."
+
+COUNT=$(echo "$QUOTES" | wc -l)
+LINE=$(( (RANDOM % COUNT) + 1 ))
+echo ""
+echo "\033[1;33m  \"$(echo "$QUOTES" | sed -n "${LINE}p")\"\033[0m"
+echo "\033[0;36m                                    — Charlie Kirk\033[0m"
+echo ""
