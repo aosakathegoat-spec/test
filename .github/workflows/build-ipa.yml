@@ -1,0 +1,48 @@
+name: Build IPA
+
+on:
+  workflow_dispatch:  # run manually with one click
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        working-directory: AriaAI
+        run: xcodegen generate
+
+      - name: Build (unsigned)
+        working-directory: AriaAI
+        run: |
+          xcodebuild archive \
+            -project AriaAI.xcodeproj \
+            -scheme AriaAI \
+            -configuration Release \
+            -destination "generic/platform=iOS" \
+            -archivePath "$RUNNER_TEMP/AriaAI.xcarchive" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            PROVISIONING_PROFILE="" \
+            | xcpretty || true
+
+      - name: Package IPA
+        run: |
+          mkdir -p Payload
+          cp -r "$RUNNER_TEMP/AriaAI.xcarchive/Products/Applications/AriaAI.app" Payload/
+          zip -r AriaAI.ipa Payload
+          echo "IPA size: $(du -sh AriaAI.ipa | cut -f1)"
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: AriaAI-ipa
+          path: AriaAI.ipa
+          retention-days: 7

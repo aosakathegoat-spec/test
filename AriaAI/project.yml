@@ -1,0 +1,61 @@
+name: AriaAI
+
+options:
+  bundleIdPrefix: com.aria
+  deploymentTarget:
+    iOS: "17.0"
+  xcodeVersion: "16.0"
+  generateEmptyDirectories: true
+  defaultConfig: Debug
+
+configs:
+  Debug: debug
+  Release: release
+
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    ENABLE_BITCODE: NO
+    DEBUG_INFORMATION_FORMAT: dwarf-with-dsym
+    ALWAYS_SEARCH_USER_PATHS: NO
+
+targets:
+  AriaAI:
+    type: application
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: AriaAI
+        excludes:
+          - "**/*.md"
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.aria.assistant
+        MARKETING_VERSION: "1.0.0"
+        CURRENT_PROJECT_VERSION: "1"
+        INFOPLIST_FILE: AriaAI/Info.plist
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        SWIFT_OPTIMIZATION_LEVEL: "-Onone"
+        DEVELOPMENT_TEAM: ""
+      configs:
+        Release:
+          SWIFT_OPTIMIZATION_LEVEL: "-O"
+    dependencies:
+      - sdk: AuthenticationServices.framework
+      - sdk: StoreKit.framework
+      - sdk: AVFoundation.framework
+      - sdk: Speech.framework
+      - sdk: UserNotifications.framework
+      - sdk: Contacts.framework
+      - sdk: MessageUI.framework
+      - sdk: AppIntents.framework
+    info:
+      path: AriaAI/Info.plist
+    entitlements:
+      path: AriaAI/AriaAI.entitlements
+      properties:
+        com.apple.developer.in-app-payments:
+          - com.aria.assistant.core.monthly
+          - com.aria.assistant.pro.monthly
+          - com.aria.assistant.ultra.monthly
+        com.apple.security.application-groups: []
