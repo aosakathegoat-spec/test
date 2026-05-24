@@ -1,7 +1,7 @@
 name: Build IPA
 
 on:
-  workflow_dispatch:  # run manually with one click
+  workflow_dispatch:
 
 jobs:
   build:
@@ -21,26 +21,21 @@ jobs:
       - name: Build (unsigned)
         working-directory: AriaAI
         run: |
-          xcodebuild archive \
+          xcodebuild build \
             -project AriaAI.xcodeproj \
             -scheme AriaAI \
             -configuration Release \
             -destination "generic/platform=iOS" \
-            -archivePath "$RUNNER_TEMP/AriaAI.xcarchive" \
+            -derivedDataPath "$RUNNER_TEMP/DerivedData" \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
             PROVISIONING_PROFILE=""
 
-      - name: Find app bundle
-        run: |
-          echo "Archive contents:"
-          find "$RUNNER_TEMP/AriaAI.xcarchive" -name "*.app" -maxdepth 6
-          APP_PATH=$(find "$RUNNER_TEMP/AriaAI.xcarchive" -name "*.app" -maxdepth 6 | head -1)
-          echo "APP_PATH=$APP_PATH" >> $GITHUB_ENV
-
       - name: Package IPA
         run: |
+          APP_PATH=$(find "$RUNNER_TEMP/DerivedData" -name "*.app" | grep -v ".xctest" | head -1)
+          echo "Found app at: $APP_PATH"
           mkdir -p Payload
           cp -r "$APP_PATH" Payload/
           zip -r AriaAI.ipa Payload
