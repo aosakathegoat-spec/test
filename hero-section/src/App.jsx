@@ -38,36 +38,26 @@ function useTypewriter(text, speed = 38, startDelay = 600) {
 function BackgroundVideo() {
   const videoRef = useRef(null)
 
-  // Desktop: position-mapped + lerp-smoothed scrubbing
-  // Mouse X maps directly: left edge = t=0, right edge = t=duration
+  // Desktop: direct position-mapped scrubbing, throttled to one seek per frame
   useEffect(() => {
     const video = videoRef.current
     if (!video) return
 
     let targetTime = 0
-    let lerpTime = 0
     let rafId = null
-
-    const animate = () => {
-      const dist = targetTime - lerpTime
-      if (Math.abs(dist) > 0.0005) {
-        lerpTime += dist * 0.08
-        video.currentTime = lerpTime
-        rafId = requestAnimationFrame(animate)
-      } else {
-        lerpTime = targetTime
-        rafId = null
-      }
-    }
 
     const handleMouseMove = (e) => {
       if (window.innerWidth < 1024) return
       if (!video.duration) return
 
-      const ratio = e.clientX / window.innerWidth
-      targetTime = ratio * video.duration
+      targetTime = (e.clientX / window.innerWidth) * video.duration
 
-      if (!rafId) rafId = requestAnimationFrame(animate)
+      if (!rafId) {
+        rafId = requestAnimationFrame(() => {
+          video.currentTime = targetTime
+          rafId = null
+        })
+      }
     }
 
     window.addEventListener('mousemove', handleMouseMove)
