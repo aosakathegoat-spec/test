@@ -37,54 +37,53 @@ function useTypewriter(text, speed = 38, startDelay = 600) {
 // ─── BackgroundVideo ──────────────────────────────────────────────────────────
 function BackgroundVideo() {
   const videoRef = useRef(null)
-  const prevXRef = useRef(null)
-  const targetTimeRef = useRef(0)
 
-  // Desktop mouse scrubbing
+  // Desktop: pure mousemove scrubbing via RAF — no seeked listener (avoids infinite loop)
   useEffect(() => {
     const video = videoRef.current
     if (!video) return
 
-    const handleSeeked = () => {
-      video.currentTime = targetTimeRef.current
-    }
+    let prevX = null
+    let targetTime = 0
+    let rafPending = false
 
-    video.addEventListener('seeked', handleSeeked)
+    const flush = () => {
+      video.currentTime = targetTime
+      rafPending = false
+    }
 
     const handleMouseMove = (e) => {
       if (window.innerWidth < 1024) return
       if (!video.duration) return
 
       const currentX = e.clientX
-      if (prevXRef.current === null) {
-        prevXRef.current = currentX
+      if (prevX === null) {
+        prevX = currentX
         return
       }
 
-      const delta = currentX - prevXRef.current
-      prevXRef.current = currentX
+      const delta = currentX - prevX
+      prevX = currentX
+      targetTime = Math.max(0, Math.min(video.duration, targetTime + (delta / window.innerWidth) * 0.8 * video.duration))
 
-      const newTime = targetTimeRef.current + (delta / window.innerWidth) * 0.8 * video.duration
-      targetTimeRef.current = Math.max(0, Math.min(video.duration, newTime))
-      video.currentTime = targetTimeRef.current
+      if (!rafPending) {
+        rafPending = true
+        requestAnimationFrame(flush)
+      }
     }
 
     window.addEventListener('mousemove', handleMouseMove)
-
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove)
-      video.removeEventListener('seeked', handleSeeked)
-    }
+    return () => window.removeEventListener('mousemove', handleMouseMove)
   }, [])
 
-  // Mobile autoplay
+  // Mobile: autoplay + loop
   useEffect(() => {
     const video = videoRef.current
     if (!video) return
 
     const checkAndPlay = () => {
       if (window.innerWidth < 1024) {
-        video.autoplay = true
+        video.loop = true
         video.play().catch(() => {})
       }
     }
@@ -95,13 +94,13 @@ function BackgroundVideo() {
   }, [])
 
   return (
-    <div className="order-last lg:order-none relative lg:absolute lg:inset-0 lg:z-0 overflow-hidden pointer-events-none w-full aspect-square md:aspect-video lg:aspect-auto lg:h-full bg-neutral-50 lg:bg-transparent">
+    <div className="order-last lg:order-none relative lg:absolute lg:inset-0 lg:z-0 overflow-hidden pointer-events-none w-full aspect-video lg:aspect-auto lg:h-full bg-neutral-100 lg:bg-transparent">
       <video
         ref={videoRef}
         muted
         playsInline
         preload="auto"
-        className="w-full h-full object-cover object-right lg:object-right-bottom"
+        className="w-full h-full object-cover object-center lg:object-right-bottom"
       >
         <source
           src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260601_110537_3a579fa0-7bbc-4d94-9d25-0e816c7840f5.mp4"
@@ -310,42 +309,45 @@ export default function App() {
       <div className="relative z-10 flex flex-col order-first lg:order-none w-full bg-white lg:bg-transparent pb-8 lg:pb-0 lg:min-h-screen">
         <main
           id="spade-hero"
-          className="w-full max-w-7xl mx-auto px-6 py-12 flex-1 flex flex-col justify-center"
+          className="w-full max-w-7xl mx-auto px-6 pt-28 pb-12 lg:pt-0 lg:pb-0 flex-1 flex flex-col justify-center"
         >
-          {/* Headline */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <h1 className="text-5xl md:text-6xl lg:text-[76px] font-normal tracking-tight text-black leading-[1.08] mb-8 select-none w-full whitespace-pre-wrap">
-              {displayed}
-              {!done && (
-                <span className="inline-block w-[2px] h-[1.1em] bg-black align-middle ml-[2px] animate-blink" />
-              )}
-            </h1>
-          </motion.div>
+          {/* Left-side content column — leaves right half free for video on desktop */}
+          <div className="w-full lg:max-w-[52%]">
+            {/* Headline */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+            >
+              <h1 className="text-5xl md:text-6xl lg:text-[76px] font-normal tracking-tight text-black leading-[1.08] mb-8 select-none w-full whitespace-pre-wrap">
+                {displayed}
+                {!done && (
+                  <span className="inline-block w-[2px] h-[1.1em] bg-black align-middle ml-[2px] animate-blink" />
+                )}
+              </h1>
+            </motion.div>
 
-          {/* Description */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-          >
-            <p className="text-lg md:text-xl text-[#5A635A] leading-relaxed font-normal mb-14 max-w-2xl">
-              Whether you have questions, feedback, <br />
-              drop us a message and we'll get back to you as soon as possible.
-            </p>
-          </motion.div>
+            {/* Description */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+            >
+              <p className="text-lg md:text-xl text-[#5A635A] leading-relaxed font-normal mb-14 max-w-2xl">
+                Whether you have questions, feedback, <br />
+                drop us a message and we'll get back to you as soon as possible.
+              </p>
+            </motion.div>
 
-          {/* Service Pills */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-          >
-            <ServicePills />
-          </motion.div>
+            {/* Service Pills */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+            >
+              <ServicePills />
+            </motion.div>
+          </div>
         </main>
       </div>
     </div>
