@@ -111,7 +111,7 @@ function BackgroundVideo() {
         className="w-full h-full object-cover object-center lg:object-right-bottom"
       >
         <source
-          src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260601_110537_3a579fa0-7bbc-4d94-9d25-0e816c7840f5.mp4"
+        src="hero-scrub.mp4"
           type="video/mp4"
         />
       </video>
