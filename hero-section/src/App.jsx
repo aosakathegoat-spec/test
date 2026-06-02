@@ -38,41 +38,49 @@ function useTypewriter(text, speed = 38, startDelay = 600) {
 function BackgroundVideo() {
   const videoRef = useRef(null)
 
-  // Desktop scrubbing: track ratio immediately, seek once duration is known
+  // Desktop scrubbing: pace seeks to the decoder to avoid seek-thrash stutter.
+  // Mouse only updates a target ratio; we issue the NEXT seek only after the
+  // previous one's `seeked` event fires, so the decoder is never overwhelmed.
   useEffect(() => {
     const video = videoRef.current
     if (!video) return
 
-    // Store 0-1 ratio even before video has loaded so we can snap on ready
-    let ratio = 0
-    let raf = null
+    let targetRatio = 0      // where the mouse wants the video (0-1)
+    let appliedRatio = -1    // where we last told the video to go
+    let seeking = false      // a seek is currently in flight
 
-    const doSeek = () => {
+    const pump = () => {
       const { duration } = video
-      if (isFinite(duration) && duration > 0) {
-        video.currentTime = ratio * duration
-      }
-      raf = null
+      if (!isFinite(duration) || duration <= 0) return
+      if (seeking) return                                   // wait for current seek
+      if (Math.abs(targetRatio - appliedRatio) < 0.0002) return  // already there
+      appliedRatio = targetRatio
+      seeking = true
+      video.currentTime = targetRatio * duration
     }
 
-    // As soon as metadata arrives, jump to wherever the mouse already is
-    const onReady = () => { if (!raf) raf = requestAnimationFrame(doSeek) }
+    const onSeeked = () => {
+      seeking = false
+      pump()                                                // chase the latest target
+    }
+    video.addEventListener('seeked', onSeeked)
+
+    // Snap to wherever the mouse already is the moment metadata is ready
+    const onReady = () => pump()
     video.addEventListener('loadedmetadata', onReady)
     if (video.readyState >= 1) onReady()
 
     const onMove = (e) => {
-      if (window.innerWidth < 768) return          // md breakpoint — works for any desktop window
-      ratio = e.clientX / window.innerWidth
-      const { duration } = video
-      if (!isFinite(duration) || duration <= 0) return  // not ready yet; ratio stored, onReady will fire
-      if (!raf) raf = requestAnimationFrame(doSeek)
+      if (window.innerWidth < 768) return
+      targetRatio = Math.min(1, Math.max(0, e.clientX / window.innerWidth))
+      pump()
     }
 
     window.addEventListener('mousemove', onMove, { passive: true })
     return () => {
       window.removeEventListener('mousemove', onMove)
+      video.removeEventListener('seeked', onSeeked)
       video.removeEventListener('loadedmetadata', onReady)
-      if (raf) cancelAnimationFrame(raf)
     }
   }, [])
 
