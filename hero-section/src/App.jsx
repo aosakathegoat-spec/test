@@ -38,18 +38,26 @@ function useTypewriter(text, speed = 38, startDelay = 600) {
 function BackgroundVideo() {
   const videoRef = useRef(null)
 
-  // Desktop: pure mousemove scrubbing via RAF — no seeked listener (avoids infinite loop)
+  // Desktop: lerp-smoothed scrubbing — lerpTime chases targetTime at 10%/frame
   useEffect(() => {
     const video = videoRef.current
     if (!video) return
 
     let prevX = null
     let targetTime = 0
-    let rafPending = false
+    let lerpTime = 0
+    let rafId = null
 
-    const flush = () => {
-      video.currentTime = targetTime
-      rafPending = false
+    const animate = () => {
+      const dist = targetTime - lerpTime
+      if (Math.abs(dist) > 0.0005) {
+        lerpTime += dist * 0.1
+        video.currentTime = lerpTime
+        rafId = requestAnimationFrame(animate)
+      } else {
+        lerpTime = targetTime
+        rafId = null
+      }
     }
 
     const handleMouseMove = (e) => {
@@ -57,23 +65,20 @@ function BackgroundVideo() {
       if (!video.duration) return
 
       const currentX = e.clientX
-      if (prevX === null) {
-        prevX = currentX
-        return
-      }
+      if (prevX === null) { prevX = currentX; return }
 
       const delta = currentX - prevX
       prevX = currentX
       targetTime = Math.max(0, Math.min(video.duration, targetTime + (delta / window.innerWidth) * 0.8 * video.duration))
 
-      if (!rafPending) {
-        rafPending = true
-        requestAnimationFrame(flush)
-      }
+      if (!rafId) rafId = requestAnimationFrame(animate)
     }
 
     window.addEventListener('mousemove', handleMouseMove)
-    return () => window.removeEventListener('mousemove', handleMouseMove)
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove)
+      if (rafId) cancelAnimationFrame(rafId)
+    }
   }, [])
 
   // Mobile: autoplay + loop
