@@ -38,32 +38,41 @@ function useTypewriter(text, speed = 38, startDelay = 600) {
 function BackgroundVideo() {
   const videoRef = useRef(null)
 
-  // Desktop: direct position-mapped scrubbing, throttled to one seek per frame
+  // Desktop scrubbing: track ratio immediately, seek once duration is known
   useEffect(() => {
     const video = videoRef.current
     if (!video) return
 
-    let targetTime = 0
-    let rafId = null
+    // Store 0-1 ratio even before video has loaded so we can snap on ready
+    let ratio = 0
+    let raf = null
 
-    const handleMouseMove = (e) => {
-      if (window.innerWidth < 1024) return
-      if (!video.duration) return
-
-      targetTime = (e.clientX / window.innerWidth) * video.duration
-
-      if (!rafId) {
-        rafId = requestAnimationFrame(() => {
-          video.currentTime = targetTime
-          rafId = null
-        })
+    const doSeek = () => {
+      const { duration } = video
+      if (isFinite(duration) && duration > 0) {
+        video.currentTime = ratio * duration
       }
+      raf = null
     }
 
-    window.addEventListener('mousemove', handleMouseMove)
+    // As soon as metadata arrives, jump to wherever the mouse already is
+    const onReady = () => { if (!raf) raf = requestAnimationFrame(doSeek) }
+    video.addEventListener('loadedmetadata', onReady)
+    if (video.readyState >= 1) onReady()
+
+    const onMove = (e) => {
+      if (window.innerWidth < 768) return          // md breakpoint — works for any desktop window
+      ratio = e.clientX / window.innerWidth
+      const { duration } = video
+      if (!isFinite(duration) || duration <= 0) return  // not ready yet; ratio stored, onReady will fire
+      if (!raf) raf = requestAnimationFrame(doSeek)
+    }
+
+    window.addEventListener('mousemove', onMove, { passive: true })
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove)
-      if (rafId) cancelAnimationFrame(rafId)
+      window.removeEventListener('mousemove', onMove)
+      video.removeEventListener('loadedmetadata', onReady)
+      if (raf) cancelAnimationFrame(raf)
     }
   }, [])
 
