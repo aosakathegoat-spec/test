@@ -38,12 +38,12 @@ function useTypewriter(text, speed = 38, startDelay = 600) {
 function BackgroundVideo() {
   const videoRef = useRef(null)
 
-  // Desktop: lerp-smoothed scrubbing — lerpTime chases targetTime at 10%/frame
+  // Desktop: position-mapped + lerp-smoothed scrubbing
+  // Mouse X maps directly: left edge = t=0, right edge = t=duration
   useEffect(() => {
     const video = videoRef.current
     if (!video) return
 
-    let prevX = null
     let targetTime = 0
     let lerpTime = 0
     let rafId = null
@@ -51,7 +51,7 @@ function BackgroundVideo() {
     const animate = () => {
       const dist = targetTime - lerpTime
       if (Math.abs(dist) > 0.0005) {
-        lerpTime += dist * 0.1
+        lerpTime += dist * 0.08
         video.currentTime = lerpTime
         rafId = requestAnimationFrame(animate)
       } else {
@@ -64,12 +64,8 @@ function BackgroundVideo() {
       if (window.innerWidth < 1024) return
       if (!video.duration) return
 
-      const currentX = e.clientX
-      if (prevX === null) { prevX = currentX; return }
-
-      const delta = currentX - prevX
-      prevX = currentX
-      targetTime = Math.max(0, Math.min(video.duration, targetTime + (delta / window.innerWidth) * 0.8 * video.duration))
+      const ratio = e.clientX / window.innerWidth
+      targetTime = ratio * video.duration
 
       if (!rafId) rafId = requestAnimationFrame(animate)
     }
